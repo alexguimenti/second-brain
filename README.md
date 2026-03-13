@@ -187,13 +187,47 @@ Types in parentheses are inferred from path when frontmatter `type:` is absent.
 
 See [docs/architecture.md](docs/architecture.md) for the full design document.
 
+## FAQ
+
+**What's the difference between `/save-session` and telling Claude to save something to a file?**
+
+`/save-session` creates a structured note with consistent sections (decisions, outcomes, resume command) and saves it to a specific location in the vault (`Claude Code/Sessions/`). Because all sessions follow the same format and live in the same place, `/vault` can find them later. If you tell Claude "save this to a README," it works for that moment, but the file ends up in a random project folder with no consistent format, and `/vault` won't find it.
+
+**Does this send my data anywhere?**
+
+No. Everything runs locally. The vault is a folder on your machine, search is done with Grep/Glob, and Claude reads files directly from disk. No data leaves your environment.
+
+**Do I need Obsidian installed?**
+
+No. The vault is just a folder of markdown files. Obsidian is optional for browsing and editing, but the commands work with any folder of `.md` files.
+
+**Can I use this with sources other than ClickUp?**
+
+Yes. The vault works with any markdown file. Drop `.md` files manually, sync them from other tools, or generate them with scripts. `/sync-clickup` is one built-in integration, but the vault itself is source-agnostic.
+
+**How does `/vault` search work? Does it read all my files every time?**
+
+No. It runs Grep (content search) and Glob (filename search) in parallel. These only scan file names and match lines, not full file contents. Claude then reads the matched snippets to judge relevance and shows you summary cards. Full files are only loaded when you explicitly ask ("load 1,3").
+
+**What happens if my vault gets really big?**
+
+At the current scale (<1000 files), Grep runs in under 10ms. For larger vaults, the roadmap includes [QMD](https://github.com/tobi/qmd), a local hybrid search engine with BM25 + vector embeddings + MCP integration, so Claude can search the vault automatically with better ranking.
+
+**How do I add my own files to the vault?**
+
+Drop any `.md` file into your vault folder (`~/Documents/Vault` by default). You can organize files in any subfolder structure you want. `/vault` searches everything recursively.
+
+**Can multiple people share the same vault?**
+
+Not currently. The vault is designed as a personal knowledge base on a single machine. Each person sets up their own vault with their own content.
+
 ## Roadmap
 
 | Phase | What | Trigger |
 |-------|------|---------|
 | **1. Slash Commands** (current) | `/vault`, `/sync-clickup`, `/save-session` | — |
-| **2. MCP Server** | Automatic vault context in every session | Vault needed 3+ times daily |
-| **3. RAG / Vector Index** | Semantic search via embeddings | 10K+ files or keyword search fails |
+| **2. QMD Hybrid Search + MCP** | Automatic vault context via local semantic search | Vault needed 3+ times daily |
+| **3. Full RAG** | Cloud embeddings, multi-user access | QMD search quality degrades at scale |
 
 ## License
 
