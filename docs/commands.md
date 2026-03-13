@@ -8,7 +8,7 @@ Search and load files from the Obsidian vault into any Claude Code conversation.
 
 | Mode | Usage | Behavior |
 |------|-------|----------|
-| Keyword search | `/vault <keywords>` | Parallel Grep+Glob, rank by relevance, auto-load top 3 |
+| Keyword search | `/vault <keywords>` | Parallel Grep+Glob, rank by relevance, show summaries |
 | Path load | `/vault --path <folder>` | Load all `.md` files in a vault folder |
 | Type filter | `/vault --type <type>` | List files matching a document type |
 | Type + search | `/vault --type <type> <keywords>` | Filter by type, then keyword search within |
@@ -31,32 +31,38 @@ Search and load files from the Obsidian vault into any Claude Code conversation.
 1. **Glob** scans all `**/*.md` filenames for keyword matches
 2. **Grep** searches file contents with 2 lines of context per match
 3. Claude synthesizes both result sets, judging relevance from snippets
-4. Top 3 files are auto-loaded into conversation context
-5. Remaining matches listed as `[N] title — path` for manual loading
+4. Results shown as **summary cards** — 2-3 line descriptions per file, generated from snippets
+5. **No files are auto-loaded** — the user picks which to bring into context with "load N"
 
 ### Output Format
 
 ```
 ## Vault Search: "reliability plan"
 
-### Auto-loaded (3 files):
-1. LLMv Platform Reliability Plan
-   ClickUp/Product - LLMv/LLMv Platform Reliability Plan.md
-2. RB Platform Reliability Plan
-   ClickUp/Product - RB/RB Platform Reliability Plan.md
-3. ...
+[1] LLMv Platform Reliability Plan
+    ClickUp/Product - LLMv/LLMv Platform Reliability Plan.md
+    → 4-week plan covering monitoring, alerting, and failover.
+      Key sections: SLA targets, alert layers, rollback procedures.
 
-### More matches (say "load N" to load):
-[4] Alert Strategy — ClickUp/Product - LLMv/...
-[5] ...
+[2] RB Platform Reliability Plan
+    ClickUp/Product - RB/RB Platform Reliability Plan.md
+    → Reliability roadmap for Report Builder. Focuses on error handling,
+      retry logic, and cache invalidation strategy.
+
+[3] Alert Strategy
+    ClickUp/Product - LLMv/Alert Strategy.md
+    → Deep dive on P0/P1/P2 alert tiers with escalation policies.
+
+Say "load 1,3" to bring full documents into context.
 ```
 
 ### Context Budget
 
-- Max 3 files auto-loaded per search
+- **No auto-loading** — summaries cost ~200-300 tokens vs ~5000-10000 for full documents
+- User controls exactly which files enter the context window
 - Large files trigger a warning before loading
 - Grep output capped at ~200 lines
-- Say "load 4, 5" to load additional matches
+- Up to 10 summary cards per search
 
 ---
 

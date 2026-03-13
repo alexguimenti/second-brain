@@ -41,29 +41,31 @@ Combine both result sets. For each matching file, look at:
 - Does the content match appear in a heading, frontmatter, or key paragraph? (strong signal)
 - Does the content match appear in a passing mention or boilerplate? (weak signal)
 
-**c) Pick the top 3 most relevant files** based on your judgment of the snippets. Prefer files where keywords appear in titles, headings, or central paragraphs over files with incidental mentions.
+**c) Rank all matching files** based on your judgment of the snippets. Prefer files where keywords appear in titles, headings, or central paragraphs over files with incidental mentions.
 
-**d) Context budget guard:** If any of the top 3 files appears very large (e.g., the Grep output for that file was exceptionally long, or you recognize it as a known large document), warn the user before loading and ask for confirmation. Never auto-load more than 3 files.
+**d) Generate a summary card for each match** (up to 10). For each file, use the Grep snippets to write a 2-3 line summary describing what the file contains and why it matched. Do NOT Read any files at this stage — work only from the snippets you already have.
 
-**e) Read the top 3 files** using the Read tool. Display their full content.
-
-**f) Show remaining matches** (if any beyond the top 3) as a numbered list:
+**e) Display results as a numbered list:**
 
 ```
 ## Vault Search: "<keywords>"
 
-### Auto-loaded (N files):
-1. <title or filename>
-   <relative path from vault root>
-2. ...
-3. ...
+[1] <title or filename>
+    <relative path from vault root>
+    → <2-3 line summary from snippets: what the file covers, key topics>
 
-### More matches (say "load N" to load):
-[4] <title or filename> — <path>
-[5] ...
+[2] <title or filename>
+    <relative path from vault root>
+    → <2-3 line summary>
+
+...
+
+Say "load 1,3" to bring full documents into context.
 ```
 
-**g) If the user responds with "load N" or similar**, read those additional files. Note: this numbered list is only valid in the immediately following user message. If the conversation context has been truncated and the list is no longer visible, re-run the search instead of relying on stale numbers.
+**f) When the user responds with "load N" or similar**, Read those files and display their full content. This is the only moment files are loaded into context — never auto-load.
+
+Note: the numbered list is only valid in the immediately following user message. If the conversation context has been truncated and the list is no longer visible, re-run the search instead of relying on stale numbers.
 
 **h) If no files match at all**, respond:
 "No vault files match '<keywords>'. Try different keywords or `/vault --types` to see available content."
@@ -102,8 +104,6 @@ Filter vault files by document type.
      | `ClickUp/` | `clickup-doc` |
      | `Claude Code/Sessions/` | `session` |
      | `Claude Code/Tools/` | `tool` |
-     | `Search Atlas/EOD/` | `eod` |
-     | `Search Atlas/Daily/` | `daily` |
      | Everything else | `note` |
 
 2. Filter to files matching the requested type.
@@ -116,7 +116,7 @@ Filter vault files by document type.
 1. First, filter files by type (same as type_filter step 1–2).
 2. Then, Grep the keywords within ONLY the filtered files.
 3. Synthesize and rank results the same way as keyword_search mode.
-4. Auto-load top 3, list the rest.
+4. Show summary cards for each match. Do not auto-load — user picks which to load.
 
 ---
 
@@ -153,7 +153,7 @@ Total: <N> files
 #### Mode: help
 
 1. Glob all `**/*.md` files under vault root.
-2. Group files by top-level folder (e.g., `ClickUp/`, `Claude Code/`, `Search Atlas/`).
+2. Group files by top-level folder (e.g., `ClickUp/`, `Claude Code/`).
 3. Count files per folder and total.
 4. Display:
 
@@ -163,7 +163,6 @@ Total: <N> files
 <N> markdown files across:
 - ClickUp/ (<N> files)
 - Claude Code/ (<N> files)
-- Search Atlas/ (<N> files)
 - <other folders> (<N> files)
 
 Usage:
@@ -181,4 +180,4 @@ Usage:
 - If the vault root directory does not exist or is not accessible, report: "Vault root not found at `C:\Users\alexg\Documents\Vault`. Verify the Obsidian vault exists."
 - If a file cannot be read (permission error, etc.), skip it and continue. Mention skipped files in the output.
 - If Grep returns more than 20 matching files, show only the top 10 most relevant and note: "20+ files matched. Showing top 10 — try a more specific query to narrow results."
-- If a file appears very large and you're about to auto-load it, warn the user first and ask for confirmation.
+- When the user asks to load a file that appears very large, warn before loading and ask for confirmation.

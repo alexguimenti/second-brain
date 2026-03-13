@@ -48,7 +48,7 @@ A knowledge management system that turns an Obsidian vault into a queryable cont
 
 | Command | Usage | Description |
 |---------|-------|-------------|
-| `/vault` | `/vault <keywords>` | Search vault and load matching files as context |
+| `/vault` | `/vault <keywords>` | Search vault, show summaries, load on demand |
 | `/vault` | `/vault --path <folder>` | Load all files in a vault folder |
 | `/vault` | `/vault --type <type>` | Filter files by document type |
 | `/vault` | `/vault --types` | List available types and file counts |
@@ -57,20 +57,34 @@ A knowledge management system that turns an Obsidian vault into a queryable cont
 | `/sync-clickup` | `/sync-clickup --add <id> <name> <path>` | Add a document to track |
 | `/save-session` | `/save-session [title]` | Save current session summary to vault |
 
+### /save-session
+
+Run `/save-session` at the end of any Claude Code session (in any project) to capture a structured summary in the vault. The command:
+
+- Extracts context, decisions, outcomes, and insights from the conversation
+- Detects if the session already has a note (one session = one note, even across resumes)
+- Discovers related vault notes and links them via Obsidian wikilinks
+- Writes a markdown file to `Claude Code/Sessions/` with frontmatter and a resume command
+
+This builds a searchable log of everything you've done across all projects. Use `/vault --type session` or `/vault <keywords>` to find past sessions later.
+
+```
+/save-session                    # Auto-generate title
+/save-session deployment fix     # Custom title slug
+```
+
 ## Vault Structure
 
 ```
 Vault/
 ├── ClickUp/                    # Synced ClickUp documents (clickup-doc)
-│   ├── Product - RB/           # Report Builder docs
-│   ├── Product - LLMv/         # LLM Visibility docs
+│   ├── <category>/             # Organized by your ClickUp workspace
 │   └── sync-config.json        # Sync configuration
 ├── Claude Code/
-│   ├── Sessions/               # Session summaries (session)
+│   ├── Sessions/               # Session summaries from /save-session (session)
 │   └── Tools/                  # Tool design docs (tool)
-└── Search Atlas/
-    ├── EOD/                    # End-of-day reports (eod)
-    └── Daily/                  # Daily notes (daily)
+└── <your-folders>/             # Custom folders — any structure you want (note)
+    └── *.md
 ```
 
 Types in parentheses are inferred from path when frontmatter `type:` is absent.
@@ -81,7 +95,7 @@ Types in parentheses are inferred from path when frontmatter `type:` is absent.
 |----------|-----------|
 | **Live Grep+Glob, no index** | At <1000 files, Grep is <10ms. An index adds 15K tokens of overhead, is always stale, and LLM-managed JSON is fragile. |
 | **LLM-judged ranking** | Claude reads content snippets from Grep to judge relevance — better than metadata-only ranking. |
-| **Context budget guard** | Max 3 files auto-loaded, large file warnings. Prevents context window blowout. |
+| **Summary-first, load on demand** | Search shows 2-3 line summaries (~300 tokens) instead of auto-loading full documents (~10K tokens). User picks which files to load. |
 | **Prompt-as-code** | Slash commands are versioned markdown files. Edit, review, and deploy like source code. |
 | **One-way ClickUp sync** | ClickUp is the source of truth. Vault is read-only mirror. Simplifies conflict resolution to "always overwrite." |
 

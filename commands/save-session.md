@@ -24,7 +24,7 @@ Before creating anything, check if this session already has a note:
    ```bash
    ls -lt ~/.claude/projects/<SLUG>/*.jsonl 2>/dev/null | head -1 | awk '{print $NF}' | sed 's/.*\///' | sed 's/\.jsonl//'
    ```
-   For example, if the working directory is `C:\Users\alexg\Documents\Projects\search_atlas\llm-visibility`, the slug is `C--Users-alexg-Documents-Projects-search-atlas-llm-visibility`.
+   For example, if the working directory is `C:\Users\alexg\Documents\Projects\my-project`, the slug is `C--Users-alexg-Documents-Projects-my-project`.
    Note: `claude session list` cannot run inside an active session, so always use the file-based approach.
 2. Glob `Claude Code/Sessions/*.md` in the vault
 3. For each file, read the first 10 lines and check if `session_id` in the frontmatter matches the current session
@@ -49,7 +49,7 @@ Scan the vault to find related notes for wikilinks:
 
 1. **Existing sessions** — Glob `Claude Code/Sessions/*.md` in the vault. For each, read the first 15 lines to get frontmatter (`project`, `tags`). Collect sessions that share the same project or overlapping tags.
 
-2. **Other vault notes** — Glob `Claude Code/**/*.md` and `Search Atlas/**/*.md` in the vault. Collect note titles (filename without `.md`) that are topically relevant to this session.
+2. **Other vault notes** — Glob `**/*.md` in the vault (excluding `Claude Code/Sessions/`). Collect note titles (filename without `.md`) that are topically relevant to this session.
 
 3. **Build wikilinks** — Create `[[Note Title]]` links for:
    - Sessions with the same project (up to 5 most recent)

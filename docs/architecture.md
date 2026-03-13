@@ -53,15 +53,21 @@ User: /vault reliability plan
               │
               ▼
    ┌─────────────────────┐
-   │  Top 3 auto-loaded  │  ← context budget guard
-   │  Rest listed for    │     max 3, large file warning
-   │  manual loading     │
+   │  Summary cards      │  ← 2-3 lines per file
+   │  generated from     │     from snippets only
+   │  snippets           │     (~300 tokens total)
+   └──────────┬──────────┘
+              │
+              ▼
+   ┌─────────────────────┐
+   │  User: "load 1,3"   │  ← on-demand loading
+   │  Full files loaded   │     only what's needed
    └─────────────────────┘
 ```
 
 ### Ranking Signals
 
-Claude uses these signals to pick the top 3 files:
+Claude uses these signals to rank files and generate summary cards:
 
 | Signal | Strength | Source |
 |--------|----------|--------|
@@ -80,20 +86,19 @@ Files are classified by type for `--type` filtering. Type comes from frontmatter
 | `ClickUp/` | `clickup-doc` | Synced ClickUp documents |
 | `Claude Code/Sessions/` | `session` | Session summaries |
 | `Claude Code/Tools/` | `tool` | Tool design documents |
-| `Search Atlas/EOD/` | `eod` | End-of-day reports |
-| `Search Atlas/Daily/` | `daily` | Daily notes |
 | Everything else | `note` | General notes |
 
-Users can override with a `type:` field in YAML frontmatter.
+Users can override with a `type:` field in YAML frontmatter. To add custom types, either add frontmatter to your files or extend the path inference table in `commands/vault.md`.
 
-## Context Budget Guard
+## Context Budget Design
 
-To prevent context window blowout:
+Search results never auto-load files. Instead, the system uses a **summary-first** approach:
 
-- **Max 3 files** auto-loaded per search
-- **Large file warning** before loading known-large documents
-- **Grep head_limit** caps snippet output at ~200 lines (~15-20 files)
-- **User-initiated loading** for additional matches via `load N` syntax
+- **Summary cards** — 2-3 line descriptions generated from Grep snippets (~300 tokens for 10 results vs ~10K tokens for 3 full documents)
+- **On-demand loading** — user picks which files to load via `load N` syntax
+- **Large file warning** — before loading files that appear very large
+- **Grep head_limit** — caps snippet output at ~200 lines (~15-20 files)
+- **Max 10 cards** per search — keeps results scannable
 
 ## Phased Roadmap
 
@@ -113,5 +118,5 @@ Each phase is additive — Phase 2 doesn't replace Phase 1, it adds automatic co
 | 2026-03-13 | Drop JSON index after adversarial review | Index added 15K tokens overhead, was always stale, LLM-managed JSON is fragile |
 | 2026-03-13 | Live Grep+Glob as search engine | <10ms on 65 files, always fresh, zero maintenance |
 | 2026-03-13 | Global command (`~/.claude/commands/`) | Must work across all projects, not just the Vault directory |
-| 2026-03-13 | Vault-wide search across all folders | No restrictions — includes ClickUp, sessions, EODs, tools, future content |
+| 2026-03-13 | Vault-wide search across all folders | No restrictions — includes ClickUp, sessions, tools, and any custom folders |
 | 2026-03-13 | Defer index to Phase 3 at 10K+ files | Gemini analysis: Grep noise is the only valid trigger, happens at much larger scale |
