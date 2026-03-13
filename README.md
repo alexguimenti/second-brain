@@ -1,27 +1,32 @@
 # Second Brain
 
-A knowledge management system that turns an Obsidian vault into a queryable context source for Claude Code. Syncs ClickUp documents, saves session summaries, and lets you search everything with natural language — all through slash commands.
+A knowledge management system that turns an Obsidian vault into a queryable context source for Claude Code. Drop any markdown file into the vault — project docs, meeting notes, research, specs, API references, personal notes — and `/vault` makes it searchable from any Claude Code session. Built-in integrations with ClickUp (document sync) and Claude Code (session summaries) are included, but the vault works with any content you put in it.
 
 ## System Overview
 
 ```
-  ┌──────────────┐                  ┌──────────────┐
-  │   ClickUp    │                  │  Any Claude   │
-  │  Documents   │                  │   Session     │
-  └──────┬───────┘                  └───────┬──────┘
-         │ /sync-clickup                    │ /save-session
-         ▼                                  ▼
-  ┌─────────────────────────────────────────────────┐
-  │                 Obsidian Vault                   │
-  │  ClickUp docs ─ Session notes ─ Your files      │
-  └──────────────────────┬──────────────────────────┘
-                         │ /vault <keywords>
-                         ▼
-                  ┌──────────────┐
-                  │   Context    │
-                  │   Loaded     │
-                  └──────────────┘
+  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+  │   ClickUp    │  │  Any Claude   │  │  Any Source   │
+  │  Documents   │  │   Session     │  │  (manual)     │
+  └──────┬───────┘  └───────┬──────┘  └───────┬──────┘
+         │                  │                  │
+         │ /sync-clickup    │ /save-session    │ drop .md files
+         ▼                  ▼                  ▼
+  ┌────────────────────────────────────────────────────┐
+  │                  Obsidian Vault                     │
+  │                                                    │
+  │  ClickUp docs ─ Sessions ─ Notes ─ Specs ─ ...    │
+  │  Any .md file in the vault is searchable           │
+  └─────────────────────────┬──────────────────────────┘
+                            │ /vault <keywords>
+                            ▼
+                     ┌──────────────┐
+                     │   Context    │
+                     │   Loaded     │
+                     └──────────────┘
 ```
+
+The vault is just a folder of markdown files. `/vault` searches **everything** in it — regardless of where the content came from. You can add files manually, sync them from external tools, or generate them from scripts. If it's a `.md` file in the vault, `/vault` will find it.
 
 ## Quick Start
 
