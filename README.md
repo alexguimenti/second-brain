@@ -124,6 +124,23 @@ Keep your vault up to date with ClickUp documents:
 /sync-clickup --add <id> <name> <path>  # Add a document to track
 ```
 
+### Keeping your vault connected
+
+As your vault grows, run `/link-vault` to discover connections between files:
+
+```
+/link-vault --dry-run              # Preview what links would be created
+/link-vault                        # Scan vault and apply with confirmation
+/link-vault --path ClickUp/        # Scan only a specific folder
+/link-vault my-file.md             # Scan a single file
+```
+
+The command finds two types of links:
+- **Inline links** — text that mentions another file by name gets wrapped in `[[wikilinks]]`
+- **Reference links** — files about related topics get a `## Related` section with connections
+
+Claude reads the context around each mention to judge whether it's a real reference or a coincidental word match — no false positives.
+
 ## Commands Reference
 
 | Command | Usage | Description |
@@ -136,6 +153,9 @@ Keep your vault up to date with ClickUp documents:
 | `/sync-clickup` | `/sync-clickup --discover` | Find ClickUp docs to track |
 | `/sync-clickup` | `/sync-clickup --add <id> <name> <path>` | Add a document to track |
 | `/save-session` | `/save-session [title]` | Save current session summary to vault |
+| `/link-vault` | `/link-vault` | Discover and create wikilinks between vault files |
+| `/link-vault` | `/link-vault --dry-run` | Preview proposed links without applying |
+| `/link-vault` | `/link-vault --path <folder>` | Scan only a specific folder |
 
 See [docs/commands.md](docs/commands.md) for the full reference with all modes and options.
 

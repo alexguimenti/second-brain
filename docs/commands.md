@@ -182,3 +182,69 @@ cd "C:\Users\alexg\Documents\Projects\my-project"; claude --resume abc123
 | `session_id` | string | Claude session ID |
 | `project_path` | string | Windows path to working directory |
 | `tags` | list | 3-7 relevant themes |
+
+---
+
+## /link-vault
+
+Discover and create Obsidian wikilinks between vault files. Finds both inline mentions and semantic relationships.
+
+### Modes
+
+| Mode | Usage | Behavior |
+|------|-------|----------|
+| Full scan + confirm | `/link-vault` | Scan entire vault, show report, ask before applying |
+| Dry run | `/link-vault --dry-run` | Show report only, no changes |
+| Auto apply | `/link-vault --auto` | Scan and apply without confirmation |
+| Folder scope | `/link-vault --path <folder>` | Scope to a specific folder |
+| Single file | `/link-vault <file.md>` | Scope to one file |
+
+Flags combine freely: `/link-vault --path ClickUp/ --dry-run`
+
+### Link Types
+
+**Inline links** — when a file's text mentions another vault file by name, the mention is wrapped in `[[wikilinks]]`. Claude reads the surrounding context to confirm it's a genuine reference, not a coincidental word match.
+
+```
+Before: "as described in the API Standards document"
+After:  "as described in the [[API Standards]] document"
+```
+
+**Reference links** — files that discuss related topics but don't mention each other by name get a `## Related` section appended.
+
+```markdown
+## Related
+- [[Billing Incident Post-mortem]] — covers the same payment retry failure
+- [[API Error Handling Standards]] — overlapping error handling patterns
+```
+
+### Report Format
+
+```
+## Link Discovery Report
+
+### Inline Links (3 proposed)
+ClickUp/Engineering/Payment Processing.md:
+  Line 12: "...the API Standards..." → "...the [[API Standards]]..."
+
+### Reference Links (2 proposed)
+ClickUp/Engineering/Payment Processing.md:
+  Add to ## Related:
+    - [[Billing Incident Post-mortem]] — same payment failure scenario
+
+### Summary
+- Files scanned: 65
+- Inline links proposed: 3
+- Reference links proposed: 2
+- Files to be modified: 2
+```
+
+When confirming, partial approvals are accepted: "only inline", "skip ClickUp/X.md", etc.
+
+### Error Handling
+
+| Error | Message |
+|-------|---------|
+| Empty vault / path not found | "No .md files found. Check vault root or --path argument." |
+| No connections found | "No new connections discovered." |
+| File read failure | Skipped, reported in summary |
