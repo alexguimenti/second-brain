@@ -44,7 +44,83 @@ A knowledge management system that turns an Obsidian vault into a queryable cont
    /vault reliability plan
    ```
 
-## Commands
+## Usage: Loading Context into a Conversation
+
+The main use case: you're in a Claude Code session working on something and need context from your vault — past decisions, product docs, session notes. Here's how it works in practice:
+
+### Step 1: Search your vault
+
+```
+/vault billing retry logic
+```
+
+Claude searches all your vault files and shows **summary cards** — short descriptions of each match, without loading anything into context:
+
+```
+## Vault Search: "billing retry logic"
+
+[1] Payment Processing Architecture
+    ClickUp/Engineering/Payment Processing Architecture.md
+    → Covers retry strategies for failed payments, exponential backoff
+      configuration, and dead letter queue handling.
+
+[2] Billing Incident Post-mortem (Feb 2026)
+    Claude Code/Sessions/2026-02-15-billing-incident.md
+    → Session where we debugged duplicate charges caused by missing
+      idempotency keys in the retry loop.
+
+[3] API Error Handling Standards
+    ClickUp/Engineering/API Error Handling Standards.md
+    → Company-wide error handling guide. Section on retryable vs
+      non-retryable errors with status code mapping.
+
+Say "load 1,3" to bring full documents into context.
+```
+
+This costs **~300 tokens** — just summaries and paths.
+
+### Step 2: Load only what you need
+
+```
+load 1,3
+```
+
+Now only those 2 files are loaded into your conversation (~4K tokens instead of ~10K for all 3). You keep the rest of your context window for actual work.
+
+### Step 3: Continue working
+
+The loaded documents are now part of your conversation context. Claude can reference them as you work — code, debug, plan, or ask questions about the content.
+
+### Other ways to pull context
+
+```
+/vault --path ClickUp/Engineering    # Load all files in a folder
+/vault --type session                # List all past session summaries
+/vault --type session deployment     # Search "deployment" within sessions only
+/vault --types                       # See what's in your vault
+```
+
+### Saving context for later
+
+At the end of a session, save what you did:
+
+```
+/save-session
+```
+
+This creates a structured note in `Claude Code/Sessions/` with decisions, outcomes, and a resume command. Next time you need that context, `/vault` will find it.
+
+### Syncing external docs
+
+Keep your vault up to date with ClickUp documents:
+
+```
+/sync-clickup                        # Sync all tracked documents
+/sync-clickup --discover             # Find new ClickUp docs to track
+/sync-clickup --add <id> <name> <path>  # Add a document to track
+```
+
+## Commands Reference
 
 | Command | Usage | Description |
 |---------|-------|-------------|
@@ -57,21 +133,7 @@ A knowledge management system that turns an Obsidian vault into a queryable cont
 | `/sync-clickup` | `/sync-clickup --add <id> <name> <path>` | Add a document to track |
 | `/save-session` | `/save-session [title]` | Save current session summary to vault |
 
-### /save-session
-
-Run `/save-session` at the end of any Claude Code session (in any project) to capture a structured summary in the vault. The command:
-
-- Extracts context, decisions, outcomes, and insights from the conversation
-- Detects if the session already has a note (one session = one note, even across resumes)
-- Discovers related vault notes and links them via Obsidian wikilinks
-- Writes a markdown file to `Claude Code/Sessions/` with frontmatter and a resume command
-
-This builds a searchable log of everything you've done across all projects. Use `/vault --type session` or `/vault <keywords>` to find past sessions later.
-
-```
-/save-session                    # Auto-generate title
-/save-session deployment fix     # Custom title slug
-```
+See [docs/commands.md](docs/commands.md) for the full reference with all modes and options.
 
 ## Vault Structure
 
