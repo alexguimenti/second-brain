@@ -115,13 +115,15 @@ The loaded documents are now part of your conversation context. Claude can refer
 
 ### Saving context for later
 
-At the end of a session, save what you did:
+Every non-trivial session (3+ messages) is **automatically backed up** when you close it — just use `/exit` or `Ctrl+C` (not the window X button). Backups go to `Work/Claude Code/Sessions/auto/`.
+
+For a richer, structured note with decisions and wikilinks, run manually:
 
 ```
 /save-session
 ```
 
-This creates a structured note in `Work/Claude Code/Sessions/` with decisions, outcomes, and a resume command. Next time you need that context, `/vault` will find it.
+This creates a curated note in `Work/Claude Code/Sessions/`. Both types are searchable via `/vault`.
 
 ### Syncing external docs
 

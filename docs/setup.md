@@ -137,10 +137,20 @@ Every non-trivial Claude Code session is automatically saved to the vault when i
 
 ### How it works
 
-1. When you close a Claude Code session, the hook runs `scripts/session-backup.py`
+1. When you close a Claude Code session **gracefully**, the hook runs `scripts/session-backup.py`
 2. The script reads the session transcript, extracts your messages, and writes a markdown note
 3. Sessions with fewer than 3 messages are skipped (greetings, quick lookups)
 4. Notes go to `<vault>/Work/Claude Code/Sessions/auto/`
+
+### Important: close sessions gracefully
+
+The hook only runs if Claude Code has time to execute it. Use `/exit` or `Ctrl+C` to close sessions — **do not** close the terminal window directly (clicking X), as this kills the process before the hook can run.
+
+| How you close | Hook runs? |
+|---------------|-----------|
+| `/exit` | Yes |
+| `Ctrl+C` | Yes |
+| Close terminal window (X) | No |
 
 ### Disabling auto-backup
 
