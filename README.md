@@ -287,11 +287,12 @@ Bring more data sources into the vault.
 
 **What's working:**
 - `/sync-clickup` — one-way ClickUp doc sync to vault
+- Scheduled sync — Windows Task Scheduler runs `scripts/scheduled-sync.sh` daily, re-indexes QMD
 - Linear connected via MCP — tickets accessible from any session
 - ClickUp connected via MCP — docs, tasks, chat accessible from any session
 
 **Still planned:**
-- Scheduled sync via cron/task scheduler
+- Linear ticket sync to vault (markdown export of active tickets)
 - Bidirectional ClickUp sync
 
 ### Phase 6 — Proactive Monitoring (Heartbeat)

@@ -56,6 +56,21 @@ If you use ClickUp and want to sync documents to the vault:
 
 The sync config lives at `<vault_root>/Work/ClickUp/sync-config.json`.
 
+### Scheduled sync (optional)
+
+To keep ClickUp docs automatically updated, register a Windows Scheduled Task:
+
+```powershell
+# Run as Administrator (one-time setup)
+powershell -ExecutionPolicy Bypass -File scripts\register-scheduled-sync.ps1
+```
+
+This syncs all tracked docs daily at 08:00 and re-indexes QMD. To change the schedule, edit the task in Task Scheduler or modify `scripts/register-scheduled-sync.ps1`.
+
+To run manually: `bash scripts/scheduled-sync.sh`
+
+Logs are written to `~/.claude/daily-logs/sync.log`.
+
 ## QMD Semantic Search (Optional)
 
 QMD adds hybrid search (BM25 + vector embeddings + LLM re-ranking) to `/vault`. Without QMD, search falls back to Grep/Glob keyword matching.
