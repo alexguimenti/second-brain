@@ -163,14 +163,13 @@ def main():
 
     output_path.write_text(markdown, encoding="utf-8")
 
-    # Sync USER.md from ~/.claude/ to vault (if it exists)
-    user_md_source = Path.home() / ".claude" / "USER.md"
-    user_md_dest = vault_root / "Tools" / "USER.md"
-    if user_md_source.is_file():
-        user_md_dest.parent.mkdir(parents=True, exist_ok=True)
-        user_md_dest.write_text(
-            user_md_source.read_text(encoding="utf-8"), encoding="utf-8"
-        )
+    # Sync global config files from ~/.claude/ to vault
+    for filename in ("USER.md", "SOUL.md", "CLAUDE.md"):
+        source = Path.home() / ".claude" / filename
+        dest = vault_root / "Tools" / filename
+        if source.is_file():
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
 
 
 if __name__ == "__main__":
