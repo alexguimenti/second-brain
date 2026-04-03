@@ -31,3 +31,12 @@ Canonical source for the Second Brain knowledge management tooling — Obsidian 
 - **Setup:** `bash scripts/setup-qmd.sh` installs QMD, registers vault, runs embedding
 - **MCP config:** Registered in `~/.claude.json` (global) under `mcpServers.qmd` — see `docs/setup.md`
 - **Re-index after vault changes:** `qmd embed` (incremental) or `qmd embed -f` (full)
+
+## Auto-Backup Hook
+
+- **What:** SessionEnd hook saves a lightweight backup of every non-trivial session to the vault
+- **Where:** `<vault>/Work/Claude Code/Sessions/auto/`
+- **Filter:** Sessions with < 3 user messages are skipped
+- **Scope:** Global — runs on all sessions in all projects
+- **Type:** `session-auto` (distinct from `session` created by `/save-session`)
+- **Script:** `scripts/session-backup.py` — registered as hook via `install.sh`

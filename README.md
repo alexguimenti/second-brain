@@ -241,7 +241,7 @@ Not currently. The vault is designed as a personal knowledge base on a single ma
 |-------|------|--------|
 | **1. Slash Commands** | `/vault`, `/sync-clickup`, `/save-session`, `/link-vault` | ✅ Complete |
 | **2. QMD Hybrid Search + MCP** | Semantic search, automatic context loading | ✅ Complete |
-| **3. Automatic Persistence (Hooks)** | Session auto-save, daily logs, pre-compact extraction | Planned |
+| **3. Automatic Persistence (Hooks)** | Session auto-backup on close, daily logs | 🔧 In Progress |
 | **4. Structured Memory** | SOUL.md, USER.md, MEMORY.md loaded on every session | Planned |
 | **5. Expanded Integrations** | Linear sync, bidirectional ClickUp, scheduled sync | Planned |
 | **6. Proactive Monitoring** | Heartbeat system, OS/Slack notifications, state diffing | Planned |
@@ -257,17 +257,19 @@ Not currently. The vault is designed as a personal knowledge base on a single ma
 - `/vault` uses QMD as preferred backend, Grep/Glob as fallback
 - Global MCP registration — works in every Claude Code session
 
-### Phase 3 — Automatic Persistence (Hooks)
+### Phase 3 — Automatic Persistence (Hooks) 🔧
 
-Automate session saving and context loading using Claude Code hooks. Inspired by [second-brain-starter](https://github.com/coleam00/second-brain-starter).
+Session auto-backup is live. Every non-trivial session (3+ user messages) is saved to the vault automatically when the session ends.
 
-**Steps:**
-1. `SessionStart` hook — load MEMORY.md + recent daily logs automatically
-2. `PreCompact` hook — extract key decisions before context compaction
-3. `SessionEnd` hook — generate session summary and append to daily log
-4. Create daily log structure at `vault/Work/Claude Code/Daily/YYYY-MM-DD.md`
+**What's working:**
+- SessionEnd hook runs `scripts/session-backup.py` on every session close
+- Extracts user messages from the transcript and writes a lightweight markdown note
+- Notes saved to `Work/Claude Code/Sessions/auto/` with `session-auto` type
+- Searchable via `/vault` and QMD — complements manual `/save-session`
 
-**Key benefit:** Zero-effort persistence. Every session feeds the vault, QMD indexes it automatically.
+**Still planned:**
+- Daily log aggregation (`Work/Claude Code/Daily/YYYY-MM-DD.md`)
+- PreCompact hook for extracting decisions before context truncation
 
 ### Phase 4 — Structured Memory
 

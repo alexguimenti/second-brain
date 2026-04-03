@@ -131,6 +131,41 @@ Or force a full re-index:
 qmd embed -f
 ```
 
+## Session Auto-Backup (Hook)
+
+Every non-trivial Claude Code session is automatically saved to the vault when it ends. This is configured as a global SessionEnd hook by `install.sh`.
+
+### How it works
+
+1. When you close a Claude Code session, the hook runs `scripts/session-backup.py`
+2. The script reads the session transcript, extracts your messages, and writes a markdown note
+3. Sessions with fewer than 3 messages are skipped (greetings, quick lookups)
+4. Notes go to `<vault>/Work/Claude Code/Sessions/auto/`
+
+### Disabling auto-backup
+
+Remove the `SessionEnd` entry from `~/.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "SessionEnd": []
+  }
+}
+```
+
+Or delete the `"SessionEnd"` key entirely.
+
+### Verifying it works
+
+After closing a session with 3+ messages, check:
+
+```bash
+ls "$HOME/Documents/Vaults/Mex_Vault/Work/Claude Code/Sessions/auto/"
+```
+
+You should see a file like `2026-04-03-my-project-c3df0532.md`.
+
 ## Verification
 
 After installation, verify everything works:

@@ -155,7 +155,7 @@ Search results never auto-load files. Instead, the system uses a **summary-first
 |-------|----------|--------|
 | **1. Slash Commands** | Live Grep+Glob, LLM ranking, 4 commands | ✅ Complete |
 | **2. QMD Hybrid Search + MCP** | BM25 + vector + re-ranking via local MCP server | ✅ Complete |
-| **3. Automatic Persistence (Hooks)** | SessionStart/End hooks, daily logs, pre-compact extraction | Planned |
+| **3. Automatic Persistence (Hooks)** | SessionEnd auto-backup, daily logs, pre-compact extraction | 🔧 In Progress |
 | **4. Structured Memory** | SOUL.md, USER.md, MEMORY.md loaded on every session | Planned |
 | **5. Expanded Integrations** | Linear sync, bidirectional ClickUp, scheduled sync | Planned |
 | **6. Proactive Monitoring** | Heartbeat system, OS/Slack notifications, state diffing | Planned |
@@ -175,3 +175,6 @@ Each phase is additive — Phase 2 doesn't replace Phase 1, it adds QMD as the p
 | 2026-04-02 | Add QMD as preferred search backend | Semantic search finds related docs even when keywords don't match. BM25 + vector + re-ranking significantly better than raw Grep for ambiguous queries |
 | 2026-04-02 | Keep Grep/Glob as fallback | QMD requires Node.js >= 22 and ~2GB models. Fallback ensures /vault works without extra setup |
 | 2026-04-02 | QMD via MCP (not embedded) | MCP integration lets Claude call QMD automatically. No changes to Claude Code itself needed |
+| 2026-04-03 | SessionEnd hook for auto-backup | Safety net for forgotten /save-session. Lightweight Python script, no API calls, no token cost |
+| 2026-04-03 | Filter sessions < 3 user messages | Avoids polluting vault with greetings and quick lookups |
+| 2026-04-03 | Separate type session-auto | Keeps auto-backups distinct from curated /save-session notes in type filtering |

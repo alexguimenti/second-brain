@@ -204,6 +204,15 @@ cd "C:\Users\username\Projects\my-project"; claude --resume abc123
 | `project_path` | string | Windows path to working directory |
 | `tags` | list | 3-7 relevant themes |
 
+### Session Auto-Backup
+
+In addition to manual `/save-session`, every non-trivial session is automatically backed up to `Work/Claude Code/Sessions/auto/` via a SessionEnd hook. These notes have type `session-auto` and contain user messages only (no Claude responses).
+
+```
+/vault --type session-auto           # List all auto-backups
+/vault --type session-auto deploy    # Search "deploy" in auto-backups only
+```
+
 ---
 
 ## /link-vault
