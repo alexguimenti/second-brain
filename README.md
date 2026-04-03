@@ -67,19 +67,30 @@ The vault is a folder of markdown files with two search engines: **QMD** (semant
    bash scripts/install.sh
    ```
 
-3. **Set up QMD** (optional but recommended — enables semantic search from any session):
+3. **Set up QMD** (semantic search — recommended):
    ```bash
    bash scripts/setup-qmd.sh
    ```
 
-4. **Open** your Obsidian vault (default: `~/Documents/Vaults/Mex_Vault`)
+4. **Set up LightRAG** (knowledge graph — optional):
+   ```bash
+   bash scripts/setup-lightrag.sh
+   ```
 
-5. **Test** in any Claude Code session:
+5. **Register scheduled tasks:**
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File scripts\register-scheduled-sync.ps1
+   powershell -ExecutionPolicy Bypass -File scripts\register-daily-reflection.ps1
+   powershell -ExecutionPolicy Bypass -File scripts\register-daily-link-vault.ps1
    ```
-   /vault --types
-   /vault reliability plan
+
+6. **Test** in any Claude Code session:
    ```
-   With QMD installed, you can also just ask Claude directly — e.g., "what do we have about reliability?" — and it will search the vault automatically.
+   /vault --types                        # Browse vault
+   /vault reliability plan               # Search with QMD
+   /lightrag-query how does X relate to Y?  # Graph search
+   /lightrag-status                      # Check LightRAG health
+   ```
 
 ## Usage: Loading Context into a Conversation
 
@@ -206,16 +217,27 @@ See [docs/commands.md](docs/commands.md) for the full reference with all modes a
 
 ```
 Mex_Vault/
-├── Personal/                   # Personal notes (note)
-├── Tools/                      # Tool design docs (tool)
+├── Personal/                        # Personal notes (note)
+├── Tools/                           # Tool docs + global memory copies
+│   ├── USER.md                      # User profile (synced from ~/.claude/)
+│   ├── SOUL.md                      # Behavior rules (synced from ~/.claude/)
+│   ├── MEMORY.md                    # Curated knowledge (synced from ~/.claude/)
+│   └── CC/                          # Claude Code tool documentation
 └── Work/
-    ├── ClickUp/                # Synced ClickUp documents (clickup-doc)
-    │   ├── <category>/         # Organized by your ClickUp workspace
-    │   └── sync-config.json    # Sync configuration
+    ├── ClickUp/                     # Synced ClickUp documents (clickup-doc)
+    │   ├── Chat/                    # Chat channel snapshots (clickup-chat)
+    │   │   └── DM/                  # Direct message snapshots
+    │   ├── sync-config.json         # Doc sync configuration
+    │   └── chat-sync-config.json    # Chat sync configuration
+    ├── Linear/                      # Linear ticket snapshots (linear-snapshot)
+    │   ├── LLMV.md                  # LLM Visibility team snapshot
+    │   ├── RB.md                    # Report Builder team snapshot
+    │   └── GSC.md                   # GSC team snapshot
     ├── Claude Code/
-    │   └── Sessions/           # Session summaries from /save-session (session)
-    ├── EOD/                    # End-of-day summaries (eod)
-    └── Search Atlas/           # Search Atlas project docs (search-atlas)
+    │   └── Sessions/                # Session summaries (session)
+    │       └── auto/                # Auto-backups from hook (session-auto)
+    ├── EOD/                         # End-of-day summaries (eod)
+    └── Search Atlas/                # Search Atlas project docs (search-atlas)
 ```
 
 Types in parentheses are inferred from path when frontmatter `type:` is absent.
@@ -243,7 +265,7 @@ See [docs/architecture.md](docs/architecture.md) for the full design document.
 
 **Does this send my data anywhere?**
 
-No. Everything runs locally. The vault is a folder on your machine, QMD runs a local MCP server with local models (~1.9GB cached in `~/.cache/qmd/`), and Claude reads files directly from disk. No data leaves your environment.
+QMD runs 100% locally (local models, no API calls). LightRAG uses OpenAI API for embeddings and graph extraction (~$0.01-0.05/query) — document content is sent to OpenAI during indexing and queries. The vault itself is a local folder. Claude reads files directly from disk.
 
 **Do I need Obsidian installed?**
 
@@ -255,13 +277,21 @@ Yes. The vault works with any markdown file. Drop `.md` files manually, sync the
 
 **How does search work?**
 
-With QMD installed (recommended), Claude searches the vault automatically using hybrid search — BM25 keyword matching, vector semantic search, and LLM re-ranking. This works from **any Claude Code session in any project**, not just inside the second-brain repo. You can also use `/vault` explicitly for controlled browsing with summary cards and selective loading.
+Three search engines, each for different use cases:
 
-Without QMD, `/vault` falls back to Grep/Glob keyword search — still fast (<10ms for <1000 files), but without semantic matching.
+| Engine | Best for | Cost | Command |
+|--------|---------|------|---------|
+| **QMD** | "Find docs about X" | Free (local) | Automatic via MCP, or `/vault` |
+| **LightRAG** | "How does X relate to Y?" | ~$0.01-0.05/query (OpenAI) | `/lightrag-query` |
+| **Grep/Glob** | Fallback when QMD unavailable | Free | `/vault` (automatic fallback) |
 
-**Do I need to use `/vault` every time I want vault context?**
+**Do I need to use commands every time?**
 
-No. With QMD installed, Claude can search the vault on its own — just ask a question and it will pull relevant context automatically via MCP. `/vault` is still useful when you want to browse, preview summaries, or control exactly which files get loaded into context.
+No. QMD is registered globally — Claude searches the vault automatically when it needs context. LightRAG requires explicit `/lightrag-query` commands. `/vault` is for controlled browsing with summary cards.
+
+**What's the difference between QMD and LightRAG?**
+
+QMD finds **documents** relevant to your query. LightRAG finds **entities and relationships** — it understands that "Omar" is "Lead of LLMv" who "reported to Alexandre" who "decided to delay the credit system launch." Use QMD for most searches, LightRAG when you need to understand connections.
 
 **How do I add my own files to the vault?**
 
@@ -324,7 +354,7 @@ All major data sources synced to vault automatically.
 **What's working:**
 - `/sync-clickup` — one-way ClickUp doc sync (10 tracked docs)
 - `/sync-linear` — Linear ticket snapshots per team (LLMV, RB, GSC)
-- `/sync-clickup-chat` — ClickUp chat snapshots (14 configured channels)
+- `/sync-clickup-chat` — ClickUp chat snapshots (14 channels + 14 DMs)
 - Scheduled sync — Windows Task Scheduler runs all 3 syncs + QMD re-index at 07:00 and 13:00
 - Linear + ClickUp connected via MCP — accessible from any session
 
@@ -342,7 +372,7 @@ Context is automatically preserved and curated without manual effort.
 
 | Time | Task | What it does |
 |------|------|-------------|
-| **07:00** | Sync | ClickUp docs + Linear tickets + ClickUp chat + QMD re-index |
+| **07:00** | Sync | ClickUp docs + Linear tickets + ClickUp chat + QMD + LightRAG re-index |
 | **13:00** | Sync | Same as 07:00 (second daily run) |
 | **19:00** | Reflection | Reviews daily log, curates MEMORY.md |
 | **20:00** | Link vault | Discovers document connections, creates wikilinks, QMD re-index |
