@@ -16,3 +16,7 @@ vault/
 
 # Superpowers plans (contain machine-specific paths)
 docs/superpowers/plans/
+
+# LightRAG data and secrets
+lightrag/.env
+lightrag/data/
