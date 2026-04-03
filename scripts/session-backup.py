@@ -117,6 +117,35 @@ cd "{project_path}"; claude --resume {session_id}
 """
 
 
+def append_to_daily_log(project: str, messages: list[str], date: str):
+    """Append a session summary to the daily log file.
+
+    The daily log lives at ~/.claude/daily-logs/YYYY-MM-DD.md and is read by
+    the /eod command to generate End-of-Day reports. Each session gets a
+    timestamped section with the user's messages as bullet points.
+    """
+    log_dir = Path.home() / ".claude" / "daily-logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_path = log_dir / f"{date}.md"
+
+    time_str = datetime.now().strftime("%H:%M")
+
+    # Build a concise topic line from the first few messages
+    topic_messages = [truncate(m, 80) for m in messages[:5]]
+    bullets = "\n".join(f"- {m}" for m in topic_messages)
+    if len(messages) > 5:
+        bullets += f"\n- ... (+{len(messages) - 5} more messages)"
+
+    entry = f"\n## {time_str} — {project} (auto)\n\n{bullets}\n"
+
+    # Create file with header if it doesn't exist, otherwise append
+    if not log_path.is_file():
+        log_path.write_text(f"# {date}\n{entry}", encoding="utf-8")
+    else:
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(entry)
+
+
 def main():
     try:
         hook_input = read_stdin_json()
@@ -162,6 +191,10 @@ def main():
     )
 
     output_path.write_text(markdown, encoding="utf-8")
+
+    # Append session entry to daily log (~/.claude/daily-logs/YYYY-MM-DD.md)
+    # This feeds into the /eod command which reads from this directory
+    append_to_daily_log(project, messages, date)
 
     # Sync global config files from ~/.claude/ to vault
     for filename in ("USER.md", "SOUL.md", "CLAUDE.md"):
