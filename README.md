@@ -244,10 +244,10 @@ Not currently. The vault is designed as a personal knowledge base on a single ma
 |-------|------|--------|
 | **1. Slash Commands** | `/vault`, `/sync-clickup`, `/save-session`, `/link-vault` | ✅ Complete |
 | **2. QMD Hybrid Search + MCP** | Semantic search, automatic context loading | ✅ Complete |
-| **3. Automatic Persistence (Hooks)** | Session auto-backup on close, daily logs | 🔧 In Progress |
-| **4. Structured Memory** | USER.md + SOUL.md loaded globally, MEMORY.md curated | 🔧 In Progress |
-| **5. Expanded Integrations** | Linear sync, bidirectional ClickUp, scheduled sync | Planned |
-| **6. Proactive Monitoring** | Heartbeat system, OS/Slack notifications, state diffing | Planned |
+| **3. Automatic Persistence (Hooks)** | Session auto-backup, daily log feed into `/eod` | ✅ Complete |
+| **4. Structured Memory** | USER.md + SOUL.md + CLAUDE.md loaded globally | ✅ Complete |
+| **5. Expanded Integrations** | Linear + ClickUp via MCP, scheduled sync | 🔧 In Progress |
+| **6. Proactive Monitoring** | Heartbeat system, curated MEMORY.md, OS/Slack notifications | Planned |
 
 ### Phase 2 — QMD Hybrid Search + MCP ✅
 
@@ -260,55 +260,51 @@ Not currently. The vault is designed as a personal knowledge base on a single ma
 - `/vault` uses QMD as preferred backend, Grep/Glob as fallback
 - Global MCP registration — works in every Claude Code session
 
-### Phase 3 — Automatic Persistence (Hooks) 🔧
+### Phase 3 — Automatic Persistence (Hooks) ✅
 
-Session auto-backup is live. Every non-trivial session (3+ user messages) is saved to the vault automatically when the session ends.
+Every non-trivial session (3+ user messages) is automatically backed up when it ends.
 
 **What's working:**
 - SessionEnd hook runs `scripts/session-backup.py` on every session close
-- Extracts user messages from the transcript and writes a lightweight markdown note
-- Notes saved to `Work/Claude Code/Sessions/auto/` with `session-auto` type
-- Appends session summary to `~/.claude/daily-logs/YYYY-MM-DD.md` — feeds into `/eod` for End-of-Day reports
-- Searchable via `/vault` and QMD — complements manual `/save-session`
+- Lightweight markdown note saved to `Work/Claude Code/Sessions/auto/`
+- Session summary appended to `~/.claude/daily-logs/YYYY-MM-DD.md` — feeds into `/eod`
+- Global config files (USER.md, SOUL.md, CLAUDE.md) synced to vault on every close
+- Close with `/exit` or `Ctrl+C` (not the X button) to trigger the hook
 
-**Still planned:**
-- PreCompact hook for extracting decisions before context truncation
-
-### Phase 4 — Structured Memory 🔧
+### Phase 4 — Structured Memory ✅
 
 Global context files give Claude persistent identity across all sessions and projects.
 
 **What's working:**
+- `~/.claude/CLAUDE.md` — orchestrator that loads USER.md and SOUL.md in every session
 - `~/.claude/USER.md` — user profile (role, teams, tools). Claude updates when it learns new info
 - `~/.claude/SOUL.md` — behavior rules (communication, guardrails, Linear conventions). Manual edit only
-- `~/.claude/CLAUDE.md` — orchestrator that loads USER.md and SOUL.md in every session
-- Session-backup hook syncs all three to `<vault>/Tools/` on every session close
+- All three synced to `<vault>/Tools/` on every session close
+
+### Phase 5 — Expanded Integrations 🔧
+
+Bring more data sources into the vault.
+
+**What's working:**
+- `/sync-clickup` — one-way ClickUp doc sync to vault
+- Linear connected via MCP — tickets accessible from any session
+- ClickUp connected via MCP — docs, tasks, chat accessible from any session
 
 **Still planned:**
-- Curated MEMORY.md with promoted decisions from daily logs
-
-### Phase 5 — Expanded Integrations
-
-Bring more data sources into the vault automatically.
-
-**Steps:**
-1. Expand `/sync-clickup` with more granular sync options
-2. Add Linear sync (already connected via MCP)
-3. Scheduled sync via cron/task scheduler
-
-**Key benefit:** More complete vault = more useful search results.
+- Scheduled sync via cron/task scheduler
+- Bidirectional ClickUp sync
 
 ### Phase 6 — Proactive Monitoring (Heartbeat)
 
-Claude actively monitors your tools and notifies you about relevant changes.
+Automate context curation and platform monitoring.
 
-**Steps:**
-1. Python script running every 30 minutes via cron
-2. Pull data from ClickUp/Linear/connected platforms
-3. State diffing against previous snapshot
-4. Notify via OS notifications or Slack when something relevant changes
+**Planned:**
+1. Heartbeat script (every 30 min) — pull data from ClickUp/Linear, state diffing
+2. Daily reflection — promote important decisions from daily logs to curated MEMORY.md
+3. PreCompact hook — extract decisions before context truncation in long sessions
+4. OS/Slack notifications for relevant changes
 
-**Key benefit:** You get notified before you need to ask.
+**Key benefit:** Zero-effort curation. The system monitors, curates, and notifies — you just work.
 
 ## License
 
