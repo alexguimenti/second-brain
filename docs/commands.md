@@ -213,6 +213,14 @@ In addition to manual `/save-session`, every non-trivial session is automaticall
 /vault --type session-auto deploy    # Search "deploy" in auto-backups only
 ```
 
+### Closing a Session
+
+| Action | What happens |
+|--------|-------------|
+| `Ctrl+C` or `/exit` | Auto-backup saves lightweight note |
+| `/end-session` then `Ctrl+C` | Full save: /log + /save-session + auto-backup |
+| Close window (X) | Nothing saved |
+
 ---
 
 ## /link-vault

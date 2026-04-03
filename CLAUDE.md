@@ -40,3 +40,9 @@ Canonical source for the Second Brain knowledge management tooling — Obsidian 
 - **Scope:** Global — runs on all sessions in all projects
 - **Type:** `session-auto` (distinct from `session` created by `/save-session`)
 - **Script:** `scripts/session-backup.py` — registered as hook via `install.sh`
+
+## Global Config
+
+- **`~/.claude/CLAUDE.md`** — Global instructions loaded in every session (communication style, USER.md loading, session close behavior)
+- **`~/.claude/USER.md`** — User profile (role, teams, tools, preferences). Updated by Claude when it learns new info. Synced to vault on session close.
+- **Session close:** `/end-session` runs /log + /save-session, then user presses Ctrl+C (triggers auto-backup hook)

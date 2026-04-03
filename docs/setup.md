@@ -176,6 +176,25 @@ ls "$HOME/Documents/Vaults/Mex_Vault/Work/Claude Code/Sessions/auto/"
 
 You should see a file like `2026-04-03-my-project-c3df0532.md`.
 
+### Closing sessions
+
+| Action | What happens |
+|--------|-------------|
+| `Ctrl+C` or `/exit` | Session closes, auto-backup hook saves lightweight note |
+| `/end-session` then `Ctrl+C` | Full save (/log + /save-session + auto-backup) |
+| Close window (X button) | No hook fires — context lost |
+
+**Recommended:** Use `/end-session` for important sessions, `Ctrl+C` for quick ones. Never close the window directly.
+
+### Global user profile
+
+`install.sh` does NOT create the global config files. These are created once manually:
+
+- `~/.claude/CLAUDE.md` — Global instructions for all sessions
+- `~/.claude/USER.md` — Your profile (role, teams, tools)
+
+The session-backup hook syncs `USER.md` to `<vault>/Tools/USER.md` on every session close, keeping the Obsidian copy up to date.
+
 ## Verification
 
 After installation, verify everything works:

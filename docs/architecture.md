@@ -178,3 +178,5 @@ Each phase is additive — Phase 2 doesn't replace Phase 1, it adds QMD as the p
 | 2026-04-03 | SessionEnd hook for auto-backup | Safety net for forgotten /save-session. Lightweight Python script, no API calls, no token cost |
 | 2026-04-03 | Filter sessions < 3 user messages | Avoids polluting vault with greetings and quick lookups |
 | 2026-04-03 | Separate type session-auto | Keeps auto-backups distinct from curated /save-session notes in type filtering |
+| 2026-04-03 | Global USER.md at ~/.claude/ | Single source of truth for user profile across all projects. Synced to vault by session-backup hook |
+| 2026-04-03 | Global CLAUDE.md at ~/.claude/ | Ensures consistent behavior (language, style, session close) without repeating in each project |
