@@ -247,7 +247,7 @@ Not currently. The vault is designed as a personal knowledge base on a single ma
 | **3. Automatic Persistence (Hooks)** | Session auto-backup, daily log feed into `/eod` | ✅ Complete |
 | **4. Structured Memory** | USER.md + SOUL.md + CLAUDE.md loaded globally | ✅ Complete |
 | **5. Expanded Integrations** | Linear + ClickUp + Chat sync, scheduled 2x daily | ✅ Complete |
-| **6. Proactive Monitoring** | Heartbeat, daily reflection, PreCompact hook | Planned |
+| **6. Automatic Curation** | Daily reflection, PreCompact hook, MEMORY.md auto-curated | ✅ Complete |
 
 ### Phase 2 — QMD Hybrid Search + MCP ✅
 
@@ -293,17 +293,14 @@ All major data sources synced to vault automatically.
 - Scheduled sync — Windows Task Scheduler runs all 3 syncs + QMD re-index at 07:00 and 13:00
 - Linear + ClickUp connected via MCP — accessible from any session
 
-### Phase 6 — Proactive Monitoring (Heartbeat)
+### Phase 6 — Automatic Curation ✅
 
-Automate context curation and platform monitoring.
+Context is automatically preserved and curated without manual effort.
 
-**Planned:**
-1. Heartbeat script (every 30 min) — pull data from ClickUp/Linear, state diffing
-2. Daily reflection — auto-promote decisions from daily logs to MEMORY.md
-3. PreCompact hook — extract decisions before context truncation in long sessions
-4. OS/Slack notifications for relevant changes
-
-**Key benefit:** Zero-effort curation. The system monitors, curates, and notifies — you just work.
+**What's working:**
+- Daily reflection at 19:00 — reviews daily log and promotes important decisions to MEMORY.md
+- PreCompact hook — extracts topics and decisions before context truncation in long sessions
+- MEMORY.md auto-curated — stale entries removed, new decisions added with dates
 
 ## License
 
