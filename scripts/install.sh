@@ -24,8 +24,11 @@ else
   VAULT_PATH_NATIVE="$VAULT_ROOT"
 fi
 
+# Escape backslashes for sed replacement (Windows paths have backslashes)
+VAULT_PATH_ESCAPED="${VAULT_PATH_NATIVE//\\/\\\\}"
+
 for cmd in "$REPO_ROOT"/commands/*.md; do
-  sed "s|{{VAULT_ROOT}}|${VAULT_PATH_NATIVE}|g" "$cmd" > "$COMMANDS_DIR/$(basename "$cmd")"
+  sed "s|{{VAULT_ROOT}}|${VAULT_PATH_ESCAPED}|g" "$cmd" > "$COMMANDS_DIR/$(basename "$cmd")"
   echo "  Deployed $(basename "$cmd")"
 done
 
