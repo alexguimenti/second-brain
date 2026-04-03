@@ -27,7 +27,9 @@ if ($existing) {
 
 # Create the task
 $Action = New-ScheduledTaskAction -Execute $BashPath -Argument "`"$ScriptPath`""
-$Trigger = New-ScheduledTaskTrigger -Daily -At "08:00"
+$Trigger1 = New-ScheduledTaskTrigger -Daily -At "07:00"
+$Trigger2 = New-ScheduledTaskTrigger -Daily -At "13:00"
+$Trigger = @($Trigger1, $Trigger2)
 $Settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -DontStopOnIdleEnd
 
 Register-ScheduledTask `
@@ -40,7 +42,7 @@ Register-ScheduledTask `
 
 Write-Host ""
 Write-Host "Scheduled task '$TaskName' registered successfully."
-Write-Host "  Trigger: Daily at 08:00"
+Write-Host "  Trigger: Daily at 07:00 and 13:00"
 Write-Host "  Action:  bash $ScriptPath"
 Write-Host ""
 Write-Host "To run manually:  Start-ScheduledTask -TaskName '$TaskName'"

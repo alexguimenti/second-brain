@@ -1,4 +1,4 @@
-Sync active Linear tickets to the Obsidian vault as Markdown files (one-way: Linear → Vault).
+Sync active Linear tickets to the Obsidian vault as a status snapshot per team (one-way: Linear → Vault).
 
 ## Arguments
 `$ARGUMENTS` — optional: a team key (e.g., `rb`, `llmv`, `gsc`) to sync only one team. No args = sync all tracked teams.
@@ -6,7 +6,7 @@ Sync active Linear tickets to the Obsidian vault as Markdown files (one-way: Lin
 ## Constants
 
 - Vault root: `{{VAULT_ROOT}}`
-- Output path: `Work/Linear/<TeamKey>/`
+- Output: one file per team at `Work/Linear/<TeamKey>.md`
 - Teams to sync: `LLMV`, `RB`, `GSC`
 
 ## Instructions
@@ -22,81 +22,91 @@ From `$ARGUMENTS`:
 For each team to sync, use the Linear MCP `list_issues` tool:
 
 ```
-list_issues(teamId: "<team_key>", limit: 50, statuses: ["In Progress", "In Review", "Ready for Dev", "Todo", "Blocked"])
+list_issues(teamId: "<team_key>", limit: 100, statuses: ["In Progress", "In Review", "Ready for Dev", "Todo", "Blocked"])
 ```
 
 This fetches only **active** tickets — not Done, Cancelled, or Backlog.
 
 If `list_issues` doesn't support filtering by status, fetch all open tickets and filter client-side.
 
-### Step 3: Write tickets to vault
+### Step 3: Write snapshot file
 
-For each ticket, write a markdown file:
+For each team, write **one file** that is overwritten on every sync:
 
-**File path:** `{{VAULT_ROOT}}/Work/Linear/<TeamKey>/<identifier>.md`
+**File path:** `{{VAULT_ROOT}}/Work/Linear/<TeamKey>.md`
 
-Example: `Work/Linear/LLMV/LLMV-288.md`
+Example: `Work/Linear/LLMV.md`
 
 **Content:**
 
 ```markdown
 ---
-type: linear-ticket
-identifier: <LLMV-288>
-title: "<ticket title>"
-status: <In Progress>
-priority: <priority name>
-assignee: <assignee name or Unassigned>
-labels: [<label1>, <label2>]
-created: <YYYY-MM-DD>
-updated: <YYYY-MM-DD>
+type: linear-snapshot
+team: <LLMV>
 last_synced: <current ISO 8601 timestamp>
-url: "<linear URL>"
+total_active: <count>
 ---
 
-# <identifier>: <title>
+# Linear — <TeamKey>
 
-## Description
+*Last synced: <YYYY-MM-DD HH:MM>*
 
-<ticket description in markdown>
+## In Progress (<count>)
 
-## Metadata
+| Ticket | Title | Priority | Assignee |
+|--------|-------|----------|----------|
+| [<ID>](<url>) | <title truncated to 60 chars> | <priority> | <assignee> |
+| ... | ... | ... | ... |
 
-- **Status:** <status>
-- **Priority:** <priority>
-- **Assignee:** <assignee>
-- **Labels:** <labels joined by comma>
-- **Created:** <date>
-- **Updated:** <date>
+## In Review (<count>)
+
+| Ticket | Title | Priority | Assignee |
+|--------|-------|----------|----------|
+| ... | ... | ... | ... |
+
+## Ready for Dev (<count>)
+
+| Ticket | Title | Priority | Assignee |
+|--------|-------|----------|----------|
+| ... | ... | ... | ... |
+
+## Todo (<count>)
+
+| Ticket | Title | Priority | Assignee |
+|--------|-------|----------|----------|
+| ... | ... | ... | ... |
+
+## Blocked (<count>)
+
+| Ticket | Title | Priority | Assignee |
+|--------|-------|----------|----------|
+| ... | ... | ... | ... |
 ```
 
 **Rules:**
-- Always overwrite existing files — no change detection
-- Create directories as needed (`mkdir -p`)
-- Sanitize filenames: strip `< > : " / \ | ? *` from ticket identifiers (shouldn't be needed for Linear IDs like LLMV-288)
+- **Always overwrite** the entire file — this is a snapshot, not a log
+- Skip empty status sections (don't show "In Review (0)" if there are none)
+- Sort tickets within each section by priority (Urgent first, then High, Medium, Low)
+- Truncate ticket titles to 60 characters in the table
+- Ticket ID should be a markdown link to the Linear URL
+- Create `Work/Linear/` directory if it doesn't exist
 
-### Step 4: Clean up resolved tickets
-
-After writing active tickets, check for `.md` files in the team folder that don't match any active ticket identifier. These are tickets that moved to Done/Cancelled since the last sync.
-
-**Do NOT delete them.** Instead, read the file, check if the frontmatter status differs from the current status, and update the status to the current one (e.g., "Done"). This way the vault keeps a record of completed tickets but with accurate status.
-
-### Step 5: Summary report
+### Step 4: Summary report
 
 ```
 ## Linear Sync Complete
 
-| Team | Active | Updated | Total in vault |
-|------|--------|---------|----------------|
-| LLMV | <N> | <N changed> | <N files> |
-| RB | <N> | <N changed> | <N files> |
-| GSC | <N> | <N changed> | <N files> |
+| Team | Active Tickets | File |
+|------|---------------|------|
+| LLMV | <N> | Work/Linear/LLMV.md |
+| RB | <N> | Work/Linear/RB.md |
+| GSC | <N> | Work/Linear/GSC.md |
 
-**Total:** <N> active tickets synced
+*Next automatic sync: <08:00 or 14:00>*
 ```
 
 ## Error Handling
 
 - **Linear MCP not connected:** "Linear MCP is not connected. Check your Claude Code settings."
 - **Team not found:** "Team '<key>' not found. Available teams: LLMV, RB, GSC."
-- **No active tickets:** Report 0 active tickets for that team — still valid, nothing to write.
+- **No active tickets:** Write the file with "No active tickets" under a single section.
