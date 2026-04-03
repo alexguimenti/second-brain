@@ -246,8 +246,8 @@ Not currently. The vault is designed as a personal knowledge base on a single ma
 | **2. QMD Hybrid Search + MCP** | Semantic search, automatic context loading | ✅ Complete |
 | **3. Automatic Persistence (Hooks)** | Session auto-backup, daily log feed into `/eod` | ✅ Complete |
 | **4. Structured Memory** | USER.md + SOUL.md + CLAUDE.md loaded globally | ✅ Complete |
-| **5. Expanded Integrations** | Linear + ClickUp via MCP, scheduled sync | 🔧 In Progress |
-| **6. Proactive Monitoring** | Heartbeat system, curated MEMORY.md, OS/Slack notifications | Planned |
+| **5. Expanded Integrations** | Linear + ClickUp + Chat sync, scheduled 2x daily | ✅ Complete |
+| **6. Proactive Monitoring** | Heartbeat, daily reflection, PreCompact hook | Planned |
 
 ### Phase 2 — QMD Hybrid Search + MCP ✅
 
@@ -276,24 +276,22 @@ Every non-trivial session (3+ user messages) is automatically backed up when it 
 Global context files give Claude persistent identity across all sessions and projects.
 
 **What's working:**
-- `~/.claude/CLAUDE.md` — orchestrator that loads USER.md and SOUL.md in every session
+- `~/.claude/CLAUDE.md` — orchestrator that loads USER.md, SOUL.md, and MEMORY.md in every session
 - `~/.claude/USER.md` — user profile (role, teams, tools). Claude updates when it learns new info
 - `~/.claude/SOUL.md` — behavior rules (communication, guardrails, Linear conventions). Manual edit only
-- All three synced to `<vault>/Tools/` on every session close
+- `~/.claude/MEMORY.md` — curated knowledge (decisions, initiatives, lessons). Claude updates on important decisions
+- All four synced to `<vault>/Tools/` on every session close
 
-### Phase 5 — Expanded Integrations 🔧
+### Phase 5 — Expanded Integrations ✅
 
-Bring more data sources into the vault.
+All major data sources synced to vault automatically.
 
 **What's working:**
-- `/sync-clickup` — one-way ClickUp doc sync to vault
-- `/sync-linear` — syncs active Linear tickets (LLMV, RB, GSC) to `Work/Linear/` as markdown
-- Scheduled sync — Windows Task Scheduler runs both syncs daily + re-indexes QMD
-- Linear connected via MCP — tickets accessible from any session
-- ClickUp connected via MCP — docs, tasks, chat accessible from any session
-
-**Still planned:**
-- Bidirectional ClickUp sync
+- `/sync-clickup` — one-way ClickUp doc sync (10 tracked docs)
+- `/sync-linear` — Linear ticket snapshots per team (LLMV, RB, GSC)
+- `/sync-clickup-chat` — ClickUp chat snapshots (14 configured channels)
+- Scheduled sync — Windows Task Scheduler runs all 3 syncs + QMD re-index at 07:00 and 13:00
+- Linear + ClickUp connected via MCP — accessible from any session
 
 ### Phase 6 — Proactive Monitoring (Heartbeat)
 
@@ -301,7 +299,7 @@ Automate context curation and platform monitoring.
 
 **Planned:**
 1. Heartbeat script (every 30 min) — pull data from ClickUp/Linear, state diffing
-2. Daily reflection — promote important decisions from daily logs to curated MEMORY.md
+2. Daily reflection — auto-promote decisions from daily logs to MEMORY.md
 3. PreCompact hook — extract decisions before context truncation in long sessions
 4. OS/Slack notifications for relevant changes
 
