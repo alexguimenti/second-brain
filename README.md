@@ -268,10 +268,10 @@ Session auto-backup is live. Every non-trivial session (3+ user messages) is sav
 - SessionEnd hook runs `scripts/session-backup.py` on every session close
 - Extracts user messages from the transcript and writes a lightweight markdown note
 - Notes saved to `Work/Claude Code/Sessions/auto/` with `session-auto` type
+- Appends session summary to `~/.claude/daily-logs/YYYY-MM-DD.md` — feeds into `/eod` for End-of-Day reports
 - Searchable via `/vault` and QMD — complements manual `/save-session`
 
 **Still planned:**
-- Daily log aggregation (`Work/Claude Code/Daily/YYYY-MM-DD.md`)
 - PreCompact hook for extracting decisions before context truncation
 
 ### Phase 4 — Structured Memory 🔧
