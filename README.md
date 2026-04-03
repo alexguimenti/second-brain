@@ -245,7 +245,7 @@ Not currently. The vault is designed as a personal knowledge base on a single ma
 | **1. Slash Commands** | `/vault`, `/sync-clickup`, `/save-session`, `/link-vault` | ✅ Complete |
 | **2. QMD Hybrid Search + MCP** | Semantic search, automatic context loading | ✅ Complete |
 | **3. Automatic Persistence (Hooks)** | Session auto-backup on close, daily logs | 🔧 In Progress |
-| **4. Structured Memory** | SOUL.md, USER.md, MEMORY.md loaded on every session | Planned |
+| **4. Structured Memory** | USER.md + SOUL.md loaded globally, MEMORY.md curated | 🔧 In Progress |
 | **5. Expanded Integrations** | Linear sync, bidirectional ClickUp, scheduled sync | Planned |
 | **6. Proactive Monitoring** | Heartbeat system, OS/Slack notifications, state diffing | Planned |
 
@@ -274,17 +274,18 @@ Session auto-backup is live. Every non-trivial session (3+ user messages) is sav
 - Daily log aggregation (`Work/Claude Code/Daily/YYYY-MM-DD.md`)
 - PreCompact hook for extracting decisions before context truncation
 
-### Phase 4 — Structured Memory
+### Phase 4 — Structured Memory 🔧
 
-Give Claude persistent identity and context across sessions with structured memory files.
+Global context files give Claude persistent identity across all sessions and projects.
 
-**Steps:**
-1. `USER.md` — profile, role, tools, communication preferences
-2. `SOUL.md` — agent personality, guardrails, behavioral rules
-3. `MEMORY.md` — key decisions and lessons learned (formalized)
-4. `SessionStart` hook injects all three files automatically
+**What's working:**
+- `~/.claude/USER.md` — user profile (role, teams, tools). Claude updates when it learns new info
+- `~/.claude/SOUL.md` — behavior rules (communication, guardrails, Linear conventions). Manual edit only
+- `~/.claude/CLAUDE.md` — orchestrator that loads USER.md and SOUL.md in every session
+- Session-backup hook syncs all three to `<vault>/Tools/` on every session close
 
-**Key benefit:** Consistency across sessions. Claude never "forgets" who you are or how to work with you.
+**Still planned:**
+- Curated MEMORY.md with promoted decisions from daily logs
 
 ### Phase 5 — Expanded Integrations
 

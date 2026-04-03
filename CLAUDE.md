@@ -43,6 +43,14 @@ Canonical source for the Second Brain knowledge management tooling — Obsidian 
 
 ## Global Config
 
-- **`~/.claude/CLAUDE.md`** — Global instructions loaded in every session (communication style, USER.md loading, session close behavior)
-- **`~/.claude/USER.md`** — User profile (role, teams, tools, preferences). Updated by Claude when it learns new info. Synced to vault on session close.
+Three global files in `~/.claude/`, loaded in every session of every project:
+
+| File | Purpose | Updated by |
+|------|---------|------------|
+| `~/.claude/CLAUDE.md` | Orchestrator — loads USER.md and SOUL.md, defines update rules | Manual edit |
+| `~/.claude/USER.md` | User profile — role, teams, tools, preferences | Claude (when it learns new info) |
+| `~/.claude/SOUL.md` | Behavior — communication style, guardrails, Linear ticket conventions | Manual edit (only when user asks) |
+
+All three are synced to `<vault>/Tools/` by the session-backup hook on every session close.
+
 - **Session close:** `/end-session` runs /log + /save-session, then user presses Ctrl+C (triggers auto-backup hook)
