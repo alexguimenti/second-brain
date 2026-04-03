@@ -23,18 +23,18 @@ bash scripts/install.sh
 
 This will:
 - Copy all slash commands to `~/.claude/commands/`
-- Create vault directories (`ClickUp/`, `Claude Code/Sessions/`, `Claude Code/Tools/`) if vault exists
+- Create vault directories (`Work/ClickUp/`, `Work/Claude Code/Sessions/`, `Tools/`) if vault exists
 - Copy `sync-config.template.json` to the vault (only if no config exists)
 
 ### 3. Configure vault path (if non-default)
 
-The default vault path is `$HOME/Documents/Vault`. To use a different location:
+The default vault path is `$HOME/Documents/Vaults/Mex_Vault`. To use a different location:
 
 ```bash
 VAULT_ROOT=/path/to/your/vault bash scripts/install.sh
 ```
 
-Note: The slash commands themselves have hardcoded paths (`C:\Users\alexg\Documents\Vault`). If your vault is elsewhere, update the paths in `commands/*.md` before installing.
+The install script substitutes `{{VAULT_ROOT}}` placeholders in all commands with the resolved path, so commands will point to your vault automatically.
 
 ## ClickUp Sync Configuration (Optional)
 
@@ -47,14 +47,89 @@ If you use ClickUp and want to sync documents to the vault:
    ```
 3. Add documents to track:
    ```
-   /sync-clickup --add <doc_id> "Document Name" "ClickUp/Category/Doc Name"
+   /sync-clickup --add <doc_id> "Document Name" "Work/ClickUp/Category/Doc Name"
    ```
 4. Run the sync:
    ```
    /sync-clickup
    ```
 
-The sync config lives at `<vault_root>/ClickUp/sync-config.json`.
+The sync config lives at `<vault_root>/Work/ClickUp/sync-config.json`.
+
+## QMD Semantic Search (Optional)
+
+QMD adds hybrid search (BM25 + vector embeddings + LLM re-ranking) to `/vault`. Without QMD, search falls back to Grep/Glob keyword matching.
+
+### Prerequisites
+
+- Node.js >= 22 (`node -v` to check)
+- ~2GB disk space for local models (downloaded to `~/.cache/qmd/models/`)
+
+### 1. Run the QMD setup script
+
+```bash
+bash scripts/setup-qmd.sh
+```
+
+This will:
+- Install QMD globally (`npm install -g @tobilu/qmd`)
+- Register your vault as a QMD collection
+- Add context metadata for each vault folder
+- Run initial embedding (~1-2 minutes for <1000 files)
+
+### 2. Register QMD MCP server in Claude Code
+
+Add to your Claude Code settings (`~/.claude/settings.json`):
+
+```json
+{
+  "mcpServers": {
+    "qmd": {
+      "command": "qmd",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+For faster subsequent queries, use the persistent HTTP server instead:
+
+```json
+{
+  "mcpServers": {
+    "qmd": {
+      "type": "http",
+      "url": "http://localhost:8181/mcp"
+    }
+  }
+}
+```
+
+Then start the QMD daemon: `qmd mcp --http --daemon`
+
+### 3. Verify
+
+In a new Claude Code session:
+
+| Test | How | Expected Result |
+|------|-----|-----------------|
+| MCP connected | Claude has `query` tool available | Tool appears in MCP tools list |
+| Search works | `/vault reliability plan` | Results with semantic matches, not just keyword hits |
+| Fallback works | Disconnect QMD MCP, run `/vault test` | Falls back to Grep/Glob silently |
+
+### Updating embeddings
+
+After adding or modifying vault files, re-run embeddings:
+
+```bash
+qmd embed
+```
+
+Or force a full re-index:
+
+```bash
+qmd embed -f
+```
 
 ## Verification
 
@@ -66,7 +141,7 @@ After installation, verify everything works:
 | Vault help | `/vault` | Shows file count and usage |
 | Type listing | `/vault --types` | Shows types with counts |
 | Keyword search | `/vault <any keyword>` | Returns matching files |
-| Session save | `/save-session test` | Creates note in `Claude Code/Sessions/` |
+| Session save | `/save-session test` | Creates note in `Work/Claude Code/Sessions/` |
 
 ## Updating Commands
 

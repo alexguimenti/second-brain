@@ -25,6 +25,57 @@ The original design included a `.vault-index.json` file maintained by Claude. An
 
 ## Search Architecture
 
+### With QMD (Phase 2 — preferred)
+
+```
+User: /vault reliability plan
+         │
+         ▼
+┌─────────────────────────────────┐
+│        Parse Arguments          │
+│   mode = keyword_search         │
+└─────────┬───────────────────────┘
+          │
+          ▼
+   ┌─────────────────────┐
+   │  QMD available?     │
+   │  (query tool exists)│
+   └──┬──────────────┬───┘
+     yes             no → Grep/Glob fallback (see below)
+      │
+      ▼
+   ┌─────────────────────┐
+   │  QMD hybrid search  │  ← single MCP call
+   │  via query() tool   │
+   └──────────┬──────────┘
+              │
+     ┌────────┼────────┐
+     ▼        ▼        ▼
+  ┌──────┐ ┌──────┐ ┌──────┐
+  │ BM25 │ │Vector│ │ HyDE │  ← QMD runs internally
+  │(FTS5)│ │search│ │search│
+  └──┬───┘ └──┬───┘ └──┬───┘
+     └────────┼────────┘
+              ▼
+   ┌─────────────────────┐
+   │ Reciprocal Rank     │  ← position-aware blending
+   │ Fusion + LLM        │
+   │ re-ranking (Qwen3)  │
+   └──────────┬──────────┘
+              ▼
+   ┌─────────────────────┐
+   │  Summary cards      │  ← same output format
+   │  from QMD snippets  │     as Grep/Glob backend
+   └──────────┬──────────┘
+              ▼
+   ┌─────────────────────┐
+   │  User: "load 1,3"   │  ← on-demand loading
+   │  via QMD get() tool  │
+   └─────────────────────┘
+```
+
+### Without QMD (Phase 1 — fallback)
+
 ```
 User: /vault reliability plan
          │
@@ -53,15 +104,13 @@ User: /vault reliability plan
               │
               ▼
    ┌─────────────────────┐
-   │  Summary cards      │  ← 2-3 lines per file
-   │  generated from     │     from snippets only
-   │  snippets           │     (~300 tokens total)
+   │  Summary cards      │
+   │  from Grep snippets │
    └──────────┬──────────┘
-              │
               ▼
    ┌─────────────────────┐
    │  User: "load 1,3"   │  ← on-demand loading
-   │  Full files loaded   │     only what's needed
+   │  Full files Read     │
    └─────────────────────┘
 ```
 
@@ -102,13 +151,16 @@ Search results never auto-load files. Instead, the system uses a **summary-first
 
 ## Phased Roadmap
 
-| Phase | Approach | Trigger to Advance |
-|-------|----------|--------------------|
-| **1. Slash Commands** (current) | Live Grep+Glob, LLM ranking, 3 commands | — |
-| **2. MCP Server** | Obsidian MCP for automatic vault context | Vault needed 3+ times daily across projects |
-| **3. RAG / Vector** | SQLite/vector DB with semantic search via MCP | 10K+ files or keyword search consistently noisy |
+| Phase | Approach | Status |
+|-------|----------|--------|
+| **1. Slash Commands** | Live Grep+Glob, LLM ranking, 4 commands | ✅ Complete |
+| **2. QMD Hybrid Search + MCP** | BM25 + vector + re-ranking via local MCP server | ✅ Complete |
+| **3. Automatic Persistence (Hooks)** | SessionStart/End hooks, daily logs, pre-compact extraction | Planned |
+| **4. Structured Memory** | SOUL.md, USER.md, MEMORY.md loaded on every session | Planned |
+| **5. Expanded Integrations** | Linear sync, bidirectional ClickUp, scheduled sync | Planned |
+| **6. Proactive Monitoring** | Heartbeat system, OS/Slack notifications, state diffing | Planned |
 
-Each phase is additive — Phase 2 doesn't replace Phase 1, it adds automatic context loading alongside manual `/vault` queries.
+Each phase is additive — Phase 2 doesn't replace Phase 1, it adds QMD as the preferred search backend with Grep/Glob as fallback.
 
 ## Decision Log
 
@@ -120,3 +172,6 @@ Each phase is additive — Phase 2 doesn't replace Phase 1, it adds automatic co
 | 2026-03-13 | Global command (`~/.claude/commands/`) | Must work across all projects, not just the Vault directory |
 | 2026-03-13 | Vault-wide search across all folders | No restrictions — includes ClickUp, sessions, tools, and any custom folders |
 | 2026-03-13 | Defer index to Phase 3 at 10K+ files | Gemini analysis: Grep noise is the only valid trigger, happens at much larger scale |
+| 2026-04-02 | Add QMD as preferred search backend | Semantic search finds related docs even when keywords don't match. BM25 + vector + re-ranking significantly better than raw Grep for ambiguous queries |
+| 2026-04-02 | Keep Grep/Glob as fallback | QMD requires Node.js >= 22 and ~2GB models. Fallback ensures /vault works without extra setup |
+| 2026-04-02 | QMD via MCP (not embedded) | MCP integration lets Claude call QMD automatically. No changes to Claude Code itself needed |

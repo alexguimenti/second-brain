@@ -13,3 +13,6 @@ Thumbs.db
 
 # Vault data (not part of this repo)
 vault/
+
+# Superpowers plans (contain machine-specific paths)
+docs/superpowers/plans/

@@ -5,7 +5,7 @@ Discover and create connections between vault files using Obsidian wikilinks.
 
 ## Constants
 
-- Vault root: `C:\Users\alexg\Documents\Vault`
+- Vault root: `{{VAULT_ROOT}}`
 - Search scope: all `**/*.md` files under vault root
 
 ## Instructions
@@ -22,7 +22,7 @@ Determine mode and scope from `$ARGUMENTS`:
 6. **`--path <folder> --auto`** → `scope = folder`, `mode = auto`
 7. **Any argument ending in `.md`** → `scope = single_file`, `mode = confirm`
 
-Flags can be combined freely: `--path ClickUp/ --dry-run` is valid.
+Flags can be combined freely: `--path Work/ClickUp/ --dry-run` is valid.
 
 ---
 
@@ -30,7 +30,7 @@ Flags can be combined freely: `--path ClickUp/ --dry-run` is valid.
 
 1. **Glob** all `**/*.md` files under vault root (or scoped path).
 2. For each file, extract:
-   - **Full path** relative to vault root (e.g., `ClickUp/Engineering/API Standards.md`)
+   - **Full path** relative to vault root (e.g., `Work/ClickUp/Engineering/API Standards.md`)
    - **Title** — filename without `.md` extension (e.g., `API Standards`)
    - **Aliases** — from YAML frontmatter `aliases:` field if present
 3. Store as the **filename index** — used to detect inline text mentions.
@@ -131,7 +131,7 @@ If no connections are found, respond: "No new connections discovered. Your vault
 
 **If `mode = confirm`:** After the report, ask:
 > "Apply these changes to N files? You can say 'yes', 'no', 'only inline', 'only references', or 'skip <file>'."
-- Respect partial approvals (e.g., "only inline links", "skip ClickUp/X.md").
+- Respect partial approvals (e.g., "only inline links", "skip Work/ClickUp/X.md").
 - If the user says no, stop.
 
 **If `mode = auto`:** Apply immediately after the report without asking.

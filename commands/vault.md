@@ -5,8 +5,21 @@ Search and load files from the Obsidian vault into this conversation as context.
 
 ## Constants
 
-- Vault root: `C:\Users\alexg\Documents\Vault`
+- Vault root: `{{VAULT_ROOT}}`
 - Search scope: all `**/*.md` files under vault root
+
+## Search Backend
+
+This command supports two search backends:
+
+1. **QMD (preferred)** — hybrid search via MCP. Available when the `qmd` MCP server is registered in Claude Code settings. Uses BM25 + vector embeddings + LLM re-ranking for semantic search.
+2. **Grep/Glob (fallback)** — keyword search using Claude's native tools. Always available. Used when QMD is not configured.
+
+**How to detect which backend is available:**
+- If you have access to a tool called `query` from the `qmd` MCP server → use QMD backend
+- Otherwise → use Grep/Glob fallback
+
+Both backends produce the same output format (summary cards). The user experience is identical — only the search quality differs.
 
 ## Instructions
 
@@ -28,11 +41,50 @@ Determine mode from `$ARGUMENTS`:
 
 This is the primary mode. Search the vault for files matching the keywords.
 
+##### Backend: QMD (if available)
+
+**a) Run hybrid search:**
+
+Call the QMD `query` tool:
+```
+query(query: "<keywords>", intent: "searching personal knowledge vault for relevant documents")
+```
+
+QMD runs BM25 keyword search, vector semantic search, and LLM re-ranking in parallel, returning ranked results with snippets.
+
+**b) Generate summary cards from QMD results:**
+
+For each result (up to 10), generate a summary card using the returned snippets and metadata. Use the same format as the Grep/Glob backend:
+
+```
+## Vault Search: "<keywords>"
+
+[1] <title or filename>
+    <relative path from vault root>
+    → <2-3 line summary from QMD snippets>
+
+[2] ...
+
+Say "load 1,3" to bring full documents into context.
+```
+
+**c) When the user responds with "load N"**, use the QMD `get` tool to retrieve full document content:
+```
+get(path: "<relative path from vault root>")
+```
+
+**d) If QMD returns no results**, respond:
+"No vault files match '<keywords>'. Try different keywords or `/vault --types` to see available content."
+
+##### Backend: Grep/Glob (fallback)
+
+Used when QMD is not available.
+
 **a) Run these two searches in parallel:**
 
-1. **Glob** `C:\Users\alexg\Documents\Vault\**\*.md` — from the results, identify files whose filename or path contains any of the search keywords (case-insensitive).
+1. **Glob** `{{VAULT_ROOT}}\**\*.md` — from the results, identify files whose filename or path contains any of the search keywords (case-insensitive).
 
-2. **Grep** the search keywords across `C:\Users\alexg\Documents\Vault` in all `.md` files. Use `output_mode: "content"` with 2 lines of context (`-C 2`) so you can see the surrounding text. Use `head_limit: 200` to cap output lines (approximately 20 files worth of snippets). Note: `head_limit` limits output lines, not files — 200 lines is a reasonable cap to get snippets from ~15-20 files without overwhelming context.
+2. **Grep** the search keywords across `{{VAULT_ROOT}}` in all `.md` files. Use `output_mode: "content"` with 2 lines of context (`-C 2`) so you can see the surrounding text. Use `head_limit: 200` to cap output lines (approximately 20 files worth of snippets). Note: `head_limit` limits output lines, not files — 200 lines is a reasonable cap to get snippets from ~15-20 files without overwhelming context.
 
 **b) Synthesize results:**
 
@@ -67,14 +119,14 @@ Say "load 1,3" to bring full documents into context.
 
 Note: the numbered list is only valid in the immediately following user message. If the conversation context has been truncated and the list is no longer visible, re-run the search instead of relying on stale numbers.
 
-**h) If no files match at all**, respond:
+**g) If no files match at all**, respond:
 "No vault files match '<keywords>'. Try different keywords or `/vault --types` to see available content."
 
 ---
 
 #### Mode: path_load
 
-1. Glob all `*.md` files under `C:\Users\alexg\Documents\Vault\<folder>` (the folder from `--path`).
+1. Glob all `*.md` files under `{{VAULT_ROOT}}\<folder>` (the folder from `--path`).
 2. If no files found, report: "No .md files found in '<folder>'. Check the path relative to vault root."
 3. If more than 5 files found, list them all and ask the user which to load (do not auto-load more than 3).
 4. If 3 or fewer files, auto-load all of them using Read.
@@ -96,14 +148,17 @@ Loaded N files:
 Filter vault files by document type.
 
 1. To determine file types, use BOTH:
-   - **Grep** for `^type:` in frontmatter across `C:\Users\alexg\Documents\Vault\**\*.md` to find files with explicit type declarations.
+   - **Grep** for `^type:` in frontmatter across `{{VAULT_ROOT}}\**\*.md` to find files with explicit type declarations.
    - **Path-based inference** for files without frontmatter type:
 
      | Path prefix | Inferred type |
      |-------------|---------------|
-     | `ClickUp/` | `clickup-doc` |
-     | `Claude Code/Sessions/` | `session` |
-     | `Claude Code/Tools/` | `tool` |
+     | `Work/ClickUp/` | `clickup-doc` |
+     | `Work/Claude Code/Sessions/` | `session` |
+     | `Work/Search Atlas/` | `search-atlas` |
+     | `Work/EOD/` | `eod` |
+     | `Personal/` | `note` |
+     | `Tools/` | `tool` |
      | Everything else | `note` |
 
 2. Filter to files matching the requested type.
@@ -114,7 +169,9 @@ Filter vault files by document type.
 #### Mode: type_search
 
 1. First, filter files by type (same as type_filter step 1–2).
-2. Then, Grep the keywords within ONLY the filtered files.
+2. Then, search within the filtered files:
+   - **QMD backend:** Call `query(query: "<keywords>")` and filter results to only include files matching the target type (by path or frontmatter).
+   - **Grep/Glob backend:** Grep the keywords within ONLY the filtered files.
 3. Synthesize and rank results the same way as keyword_search mode.
 4. Show summary cards for each match. Do not auto-load — user picks which to load.
 
@@ -161,8 +218,9 @@ Total: <N> files
 ## Obsidian Vault — Context Loader
 
 <N> markdown files across:
-- ClickUp/ (<N> files)
-- Claude Code/ (<N> files)
+- Personal/ (<N> files)
+- Tools/ (<N> files)
+- Work/ (<N> files)
 - <other folders> (<N> files)
 
 Usage:
@@ -177,7 +235,7 @@ Usage:
 
 ## Error Handling
 
-- If the vault root directory does not exist or is not accessible, report: "Vault root not found at `C:\Users\alexg\Documents\Vault`. Verify the Obsidian vault exists."
+- If the vault root directory does not exist or is not accessible, report: "Vault root not found at `{{VAULT_ROOT}}`. Verify the Obsidian vault exists."
 - If a file cannot be read (permission error, etc.), skip it and continue. Mention skipped files in the output.
 - If Grep returns more than 20 matching files, show only the top 10 most relevant and note: "20+ files matched. Showing top 10 — try a more specific query to narrow results."
 - When the user asks to load a file that appears very large, warn before loading and ask for confirmation.

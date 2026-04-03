@@ -24,9 +24,9 @@ Before creating anything, check if this session already has a note:
    ```bash
    ls -lt ~/.claude/projects/<SLUG>/*.jsonl 2>/dev/null | head -1 | awk '{print $NF}' | sed 's/.*\///' | sed 's/\.jsonl//'
    ```
-   For example, if the working directory is `C:\Users\alexg\Documents\Projects\my-project`, the slug is `C--Users-alexg-Documents-Projects-my-project`.
+   For example, if the working directory is `C:\Users\username\Documents\Projects\my-project`, the slug is `C--Users-username-Documents-Projects-my-project`.
    Note: `claude session list` cannot run inside an active session, so always use the file-based approach.
-2. Glob `Claude Code/Sessions/*.md` in the vault
+2. Glob `Work/Claude Code/Sessions/*.md` in the vault
 3. For each file, read the first 10 lines and check if `session_id` in the frontmatter matches the current session
 4. If a match is found: **update that file** (overwrite with the new, complete summary). Keep the original filename — do NOT rename it.
 5. If no match: proceed to create a new note
@@ -40,16 +40,16 @@ Extract from context:
 - **`tags`**: 3-7 relevant themes (e.g., `deployment`, `debugging`, `refactor`, `planning`, `architecture`, `mcp`, `obsidian`)
 - **`date`**: the date when the session was **first created** (keep the original date if updating an existing note; use today if creating new)
 - **`session_id`**: from step 2 above
-- **`project_path`**: current working directory as a **Windows path** (e.g., `C:\Users\alexg\Documents\Projects\my-project`)
+- **`project_path`**: current working directory as a **Windows path** (e.g., `C:\Users\username\Documents\Projects\my-project`)
 - **Filename** (new notes only): `YYYY-MM-DD-title-slug.md` — a short, descriptive kebab-case slug in English. If `$ARGUMENTS` provides a title, use it for the slug.
 
 ### 4. Discover links
 
 Scan the vault to find related notes for wikilinks:
 
-1. **Existing sessions** — Glob `Claude Code/Sessions/*.md` in the vault. For each, read the first 15 lines to get frontmatter (`project`, `tags`). Collect sessions that share the same project or overlapping tags.
+1. **Existing sessions** — Glob `Work/Claude Code/Sessions/*.md` in the vault. For each, read the first 15 lines to get frontmatter (`project`, `tags`). Collect sessions that share the same project or overlapping tags.
 
-2. **Other vault notes** — Glob `**/*.md` in the vault (excluding `Claude Code/Sessions/`). Collect note titles (filename without `.md`) that are topically relevant to this session.
+2. **Other vault notes** — Glob `**/*.md` in the vault (excluding `Work/Claude Code/Sessions/`). Collect note titles (filename without `.md`) that are topically relevant to this session.
 
 3. **Build wikilinks** — Create `[[Note Title]]` links for:
    - Sessions with the same project (up to 5 most recent)
@@ -60,7 +60,7 @@ If no related notes are found, leave the References section with just external l
 
 ### 5. Write the note
 
-Write the file to `C:\Users\alexg\Documents\Vault\Claude Code\Sessions\YYYY-MM-DD-title-slug.md` using this exact template:
+Write the file to `{{VAULT_ROOT}}\Work\Claude Code\Sessions\YYYY-MM-DD-title-slug.md` using this exact template:
 
 ```markdown
 ---
@@ -68,7 +68,7 @@ type: session
 date: YYYY-MM-DD
 project: project-name
 session_id: abc123
-project_path: "C:\\Users\\alexg\\path\\to\\project"
+project_path: "C:\\Users\\username\\path\\to\\project"
 tags:
   - tag1
   - tag2
@@ -117,12 +117,12 @@ Output a short summary:
 - Whether this was a new note or an update to an existing one
 - The resume command as a copyable code block:
 ```
-cd "C:\Users\alexg\Documents\Projects\..."; claude --resume SESSION_ID
+cd "C:\Users\username\Documents\Projects\..."; claude --resume SESSION_ID
 ```
 This should use the actual `project_path` and `session_id` from the note, so the user can copy-paste it directly to resume later.
 
 **Important rules:**
 - ALWAYS Read existing files before trying to find links
-- The vault root is `C:\Users\alexg\Documents\Vault`
+- The vault root is `{{VAULT_ROOT}}`
 - Do NOT create notes for trivial conversations
 - Keep the note under 60 lines — brevity is key

@@ -28,11 +28,32 @@ Search and load files from the Obsidian vault into any Claude Code conversation.
 
 ### Search Behavior
 
+`/vault` supports two search backends, selected automatically:
+
+#### QMD Backend (preferred)
+
+When the QMD MCP server is registered, `/vault` uses hybrid search:
+
+1. **BM25 full-text search** — fast keyword matching with phrase support
+2. **Vector semantic search** — meaning-based retrieval using local embeddings
+3. **HyDE** — generates a hypothetical answer document and finds similar real docs
+4. **LLM re-ranking** — Qwen3 reranks top results for final ordering
+
+A single `query()` call to QMD runs all four methods and returns fused, ranked results with snippets.
+
+**Semantic matching examples:**
+- "payment failures" finds docs about "billing retry", "credit card errors", "charge disputes"
+- "deploy strategy" finds docs about "rollback procedures", "canary releases", "feature flags"
+
+#### Grep/Glob Backend (fallback)
+
+When QMD is not available, `/vault` falls back to keyword search:
+
 1. **Glob** scans all `**/*.md` filenames for keyword matches
 2. **Grep** searches file contents with 2 lines of context per match
 3. Claude synthesizes both result sets, judging relevance from snippets
-4. Results shown as **summary cards** — 2-3 line descriptions per file, generated from snippets
-5. **No files are auto-loaded** — the user picks which to bring into context with "load N"
+
+Both backends produce identical output format (summary cards). The user experience is the same — only search quality differs.
 
 ### Output Format
 
@@ -88,7 +109,7 @@ Config file: `<vault_root>/ClickUp/sync-config.json`
 {
   "documents": [
     {
-      "document_id": "8chy2nm-1234567",
+      "document_id": "your-doc-id-here",
       "name": "My Document",
       "vault_path": "ClickUp/Category/My Document"
     }
@@ -116,7 +137,7 @@ Each ClickUp page becomes a markdown file with frontmatter:
 ```markdown
 ---
 type: clickup-doc
-clickup_doc_id: "8chy2nm-1234567"
+clickup_doc_id: "your-doc-id-here"
 clickup_page_id: "page-abc"
 title: "Page Title"
 last_synced: 2026-03-13T10:30:00Z
@@ -169,7 +190,7 @@ Links: [[Previous Session]], [[Related Tool Doc]]
 Status: New note created
 
 Resume:
-cd "C:\Users\alexg\Documents\Projects\my-project"; claude --resume abc123
+cd "C:\Users\username\Projects\my-project"; claude --resume abc123
 ```
 
 ### Frontmatter Schema

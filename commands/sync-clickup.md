@@ -7,7 +7,7 @@ Sync ClickUp Docs into the Obsidian vault as Markdown files (one-way: ClickUp �
 
 ### Step 1: Read Config
 
-Read `C:\Users\alexg\Documents\Vault\ClickUp\sync-config.json`. If missing, create it with:
+Read `{{VAULT_ROOT}}\Work\ClickUp\sync-config.json`. If missing, create it with:
 ```json
 {
   "documents": [],
@@ -39,7 +39,7 @@ Determine mode from `$ARGUMENTS`:
 1. Call `clickup_search(keywords, filters: { asset_types: ["doc"] })` — include `keywords` only if provided
 2. Display results as a numbered list: `[N] doc_name (doc_id)`
 3. Ask user: "Which docs would you like to track? Enter numbers, or use `/sync-clickup --add <doc_id> <name> <vault_path>` to add manually."
-4. If user picks numbers, for each selected doc ask for a `vault_path` (relative to vault root, e.g., `ClickUp/Produto/Product Roadmap`), then append entries to config and save.
+4. If user picks numbers, for each selected doc ask for a `vault_path` (relative to vault root, e.g., `Work/ClickUp/Produto/Product Roadmap`), then append entries to config and save.
 
 **Stop here** — do not proceed to sync.
 
@@ -89,7 +89,7 @@ Process each batch before fetching the next to keep context manageable.
 
 **d) Write each page as a Markdown file** in the vault:
 
-File path: `C:\Users\alexg\Documents\Vault\<computed_path>`
+File path: `{{VAULT_ROOT}}\<computed_path>`
 
 Content format:
 ```markdown
@@ -99,7 +99,7 @@ clickup_doc_id: "<doc_id>"
 clickup_page_id: "<page_id>"
 title: "<page_title>"
 last_synced: <current ISO 8601 timestamp>
-source_url: "https://app.clickup.com/9011399348/v/dc/<doc_id>"
+source_url: "https://app.clickup.com/<workspace_id>/v/dc/<doc_id>"
 parent_page: "<parent_page_title or empty if root>"
 ---
 
