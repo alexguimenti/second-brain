@@ -154,6 +154,7 @@ Filter vault files by document type.
      | Path prefix | Inferred type |
      |-------------|---------------|
      | `Work/ClickUp/` | `clickup-doc` |
+     | `Work/Linear/` | `linear-ticket` |
      | `Work/Claude Code/Sessions/auto/` | `session-auto` |
      | `Work/Claude Code/Sessions/` | `session` |
      | `Work/Search Atlas/` | `search-atlas` |

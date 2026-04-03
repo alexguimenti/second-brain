@@ -25,11 +25,13 @@ if [[ "${1:-}" == "--dry-run" ]]; then
 fi
 
 # Run sync-clickup via Claude Code non-interactive mode
-# Uses the second-brain project directory so MCP tools are available
 claude -p "/sync-clickup" --cwd "$REPO_ROOT" >> "$LOG_FILE" 2>&1
+echo "[$(date -Iseconds)] ClickUp sync done (exit: $?)" >> "$LOG_FILE"
 
+# Run sync-linear
+claude -p "/sync-linear" --cwd "$REPO_ROOT" >> "$LOG_FILE" 2>&1
 EXIT_CODE=$?
-echo "[$(date -Iseconds)] Sync finished (exit: $EXIT_CODE)" >> "$LOG_FILE"
+echo "[$(date -Iseconds)] Linear sync done (exit: $EXIT_CODE)" >> "$LOG_FILE"
 
 # Re-index vault if QMD is available
 if command -v qmd &> /dev/null; then
