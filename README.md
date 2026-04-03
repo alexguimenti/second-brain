@@ -1,35 +1,59 @@
 # Second Brain
 
-A knowledge management system that turns an Obsidian vault into a queryable context source for Claude Code. Drop any markdown file into the vault — project docs, meeting notes, research, specs, API references, personal notes — and `/vault` makes it searchable from any Claude Code session. Built-in integrations with ClickUp (document sync) and Claude Code (session summaries) are included, but the vault works with any content you put in it.
+A knowledge management system built on an Obsidian vault with dual search (QMD + LightRAG), automatic persistence, and scheduled integrations with ClickUp and Linear. Claude Code has persistent identity via global memory files and automatically backs up every session.
 
 ## System Overview
 
 ```
-  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
-  │   ClickUp    │  │  Any Claude   │  │  Any Source   │
-  │  Documents   │  │   Session     │  │  (manual)     │
-  └──────┬───────┘  └───────┬──────┘  └───────┬──────┘
-         │                  │                  │
-         │ /sync-clickup    │ /save-session    │ drop .md files
-         ▼                  ▼                  ▼
-  ┌────────────────────────────────────────────────────┐
-  │                  Obsidian Vault                     │
-  │                                                    │
-  │  ClickUp docs ─ Sessions ─ Notes ─ Specs ─ ...    │
-  │  Any .md file in the vault is searchable           │
-  └──────────┬──────────────────────────┬──────────────┘
-             │                          │
-             │ QMD MCP (automatic)      │ /vault <keywords>
-             │ Claude searches on       │ (explicit search)
-             │ its own when needed      │
-             ▼                          ▼
-                     ┌──────────────┐
-                     │   Context    │
-                     │   Loaded     │
-                     └──────────────┘
+  DATA SOURCES                         GLOBAL MEMORY
+  ────────────                         ─────────────
+  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐
+  │   ClickUp    │  │   Linear     │  │  ~/.claude/           │
+  │  Docs + Chat │  │   Tickets    │  │  CLAUDE.md (loader)   │
+  └──────┬───────┘  └──────┬───────┘  │  USER.md  (profile)   │
+         │                 │          │  SOUL.md  (behavior)   │
+  /sync-clickup     /sync-linear      │  MEMORY.md (knowledge) │
+  /sync-clickup-chat                  └──────────┬────────────┘
+         │                 │                     │
+         ▼                 ▼                     │ loaded every session
+  ┌────────────────────────────────────┐         │
+  │          Obsidian Vault            │         │
+  │                                    │         │
+  │  ClickUp docs ─ Linear snapshots  │         │
+  │  Chat snapshots ─ Sessions ─ EODs │         │
+  │  Auto-backups ─ Notes ─ Specs     │         │
+  └──┬──────────────┬─────────────┬───┘         │
+     │              │             │              │
+     │ QMD          │ LightRAG    │ /vault       │
+     │ (documents)  │ (graph)     │ (explicit)   │
+     ▼              ▼             ▼              ▼
+  ┌────────────────────────────────────────────────┐
+  │              Claude Code Session                │
+  │                                                │
+  │  Knows who you are (USER.md)                   │
+  │  Knows how to behave (SOUL.md)                 │
+  │  Knows recent decisions (MEMORY.md)            │
+  │  Searches vault automatically (QMD)            │
+  │  Explores relationships (LightRAG)             │
+  └────────────────────┬───────────────────────────┘
+                       │
+              On close (Ctrl+C)
+                       │
+  ┌────────────────────▼───────────────────────────┐
+  │  SessionEnd Hook (session-backup.py)           │
+  │  → Auto-backup to vault                        │
+  │  → Append to daily log (feeds /eod)            │
+  │  → Sync global files to vault                  │
+  └────────────────────────────────────────────────┘
+
+  SCHEDULED TASKS (Windows Task Scheduler)
+  ─────────────────────────────────────────
+  07:00 + 13:00  Sync ClickUp + Linear + Chat + QMD re-index
+  19:00          Daily reflection → curate MEMORY.md
+  20:00          Link vault → discover document connections
 ```
 
-The vault is just a folder of markdown files. With QMD installed, Claude can search the vault **automatically from any session in any project** — no explicit commands needed. The `/vault` command remains available for deliberate browsing and controlled context loading. You can add files manually, sync them from external tools, or generate them with scripts. If it's a `.md` file in the vault, it's searchable.
+The vault is a folder of markdown files with two search engines: **QMD** (semantic document search, local, free) and **LightRAG** (knowledge graph with entity relationships, OpenAI-powered). Claude has persistent identity across all sessions via 4 global files and automatically backs up every session on close.
 
 ## Quick Start
 
