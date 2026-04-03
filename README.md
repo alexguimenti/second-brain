@@ -238,16 +238,18 @@ Drop any `.md` file into your vault folder. You can organize files in any subfol
 
 Not currently. The vault is designed as a personal knowledge base on a single machine. Each person sets up their own vault with their own content.
 
-## Roadmap
+## Roadmap — Complete
+
+All 6 phases implemented. Inspired by [second-brain-starter](https://github.com/coleam00/second-brain-starter), adapted for a PM workflow with Claude Code + Obsidian + ClickUp + Linear.
 
 | Phase | What | Status |
 |-------|------|--------|
-| **1. Slash Commands** | `/vault`, `/sync-clickup`, `/save-session`, `/link-vault` | ✅ Complete |
-| **2. QMD Hybrid Search + MCP** | Semantic search, automatic context loading | ✅ Complete |
-| **3. Automatic Persistence (Hooks)** | Session auto-backup, daily log feed into `/eod` | ✅ Complete |
-| **4. Structured Memory** | USER.md + SOUL.md + CLAUDE.md loaded globally | ✅ Complete |
-| **5. Expanded Integrations** | Linear + ClickUp + Chat sync, scheduled 2x daily | ✅ Complete |
-| **6. Automatic Curation** | Daily reflection, PreCompact hook, MEMORY.md auto-curated | ✅ Complete |
+| **1. Slash Commands** | `/vault`, `/sync-clickup`, `/save-session`, `/link-vault` | ✅ |
+| **2. QMD Hybrid Search + MCP** | Semantic search, automatic context loading | ✅ |
+| **3. Automatic Persistence (Hooks)** | Session auto-backup, daily log feed into `/eod` | ✅ |
+| **4. Structured Memory** | USER.md + SOUL.md + MEMORY.md + CLAUDE.md loaded globally | ✅ |
+| **5. Expanded Integrations** | Linear + ClickUp + Chat sync, scheduled 2x daily | ✅ |
+| **6. Automatic Curation** | Daily reflection, PreCompact hook, MEMORY.md auto-curated | ✅ |
 
 ### Phase 2 — QMD Hybrid Search + MCP ✅
 

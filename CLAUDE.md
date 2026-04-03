@@ -44,14 +44,32 @@ Canonical source for the Second Brain knowledge management tooling — Obsidian 
 
 ## Global Config
 
-Three global files in `~/.claude/`, loaded in every session of every project:
+Four global files in `~/.claude/`, loaded in every session of every project:
 
 | File | Purpose | Updated by |
 |------|---------|------------|
-| `~/.claude/CLAUDE.md` | Orchestrator — loads USER.md and SOUL.md, defines update rules | Manual edit |
+| `~/.claude/CLAUDE.md` | Orchestrator — loads the other 3 files, defines update rules | Manual edit |
 | `~/.claude/USER.md` | User profile — role, teams, tools, preferences | Claude (when it learns new info) |
 | `~/.claude/SOUL.md` | Behavior — communication style, guardrails, Linear ticket conventions | Manual edit (only when user asks) |
+| `~/.claude/MEMORY.md` | Curated knowledge — decisions, initiatives, lessons learned | Claude (on important decisions) + daily reflection at 19:00 |
 
-All three are synced to `<vault>/Tools/` by the session-backup hook on every session close.
+All four are synced to `<vault>/Tools/` by the session-backup hook on every session close.
 
-- **Session close:** `/end-session` runs /log + /save-session, then user presses Ctrl+C (triggers auto-backup hook)
+## Hooks
+
+| Hook | Event | Script | What it does |
+|------|-------|--------|-------------|
+| Session backup | `SessionEnd` | `scripts/session-backup.py` | Auto-backup + daily log + sync global files |
+| Pre-compact | `PreCompact` | `scripts/pre-compact.py` | Extracts topics/decisions before context truncation |
+
+## Scheduled Tasks
+
+| Task | Schedule | Script | What it does |
+|------|----------|--------|-------------|
+| Sync | 07:00 + 13:00 | `scripts/scheduled-sync.sh` | ClickUp docs + Linear tickets + ClickUp chat + QMD re-index |
+| Daily reflection | 19:00 | `scripts/daily-reflection.sh` | Reviews daily log, curates MEMORY.md |
+
+## Session Close
+
+- `/end-session` runs /log + /save-session, then user presses Ctrl+C (triggers auto-backup hook)
+- Quick close: just Ctrl+C (auto-backup only)
