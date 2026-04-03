@@ -303,6 +303,18 @@ Context is automatically preserved and curated without manual effort.
 - Daily reflection at 19:00 — reviews daily log and promotes important decisions to MEMORY.md
 - PreCompact hook — extracts topics and decisions before context truncation in long sessions
 - MEMORY.md auto-curated — stale entries removed, new decisions added with dates
+- Daily link-vault at 20:00 — discovers connections between vault documents, creates wikilinks, re-indexes QMD
+
+### Daily Automation Schedule
+
+| Time | Task | What it does |
+|------|------|-------------|
+| **07:00** | Sync | ClickUp docs + Linear tickets + ClickUp chat + QMD re-index |
+| **13:00** | Sync | Same as 07:00 (second daily run) |
+| **19:00** | Reflection | Reviews daily log, curates MEMORY.md |
+| **20:00** | Link vault | Discovers document connections, creates wikilinks, QMD re-index |
+| **On close** | Session backup | Auto-backup + daily log + sync global files (Ctrl+C or /exit) |
+| **On compact** | PreCompact | Extracts topics/decisions before context truncation |
 
 ## License
 
