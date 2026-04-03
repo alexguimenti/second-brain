@@ -168,6 +168,13 @@ Claude reads the context around each mention to judge whether it's a real refere
 | `/link-vault` | `/link-vault` | Discover and create wikilinks between vault files |
 | `/link-vault` | `/link-vault --dry-run` | Preview proposed links without applying |
 | `/link-vault` | `/link-vault --path <folder>` | Scan only a specific folder |
+| `/sync-linear` | `/sync-linear [team]` | Sync Linear ticket snapshots to vault |
+| `/sync-clickup-chat` | `/sync-clickup-chat` | Sync ClickUp chat channel snapshots |
+| `/lightrag-query` | `/lightrag-query <question>` | Query knowledge graph (hybrid search) |
+| `/lightrag-explore` | `/lightrag-explore <entity>` | Explore graph entities and connections |
+| `/lightrag-upload` | `/lightrag-upload <file>` | Upload document to knowledge graph |
+| `/lightrag-status` | `/lightrag-status` | Check LightRAG health and indexing status |
+| `/end-session` | `/end-session` | Run /log + /save-session, then Ctrl+C to close |
 
 See [docs/commands.md](docs/commands.md) for the full reference with all modes and options.
 
@@ -193,7 +200,9 @@ Types in parentheses are inferred from path when frontmatter `type:` is absent.
 
 | Decision | Rationale |
 |----------|-----------|
-| **QMD hybrid search (preferred)** | BM25 + vector embeddings + LLM re-ranking via local MCP. Semantic matches ("payment failures" → "billing retry"). Registered globally — works in any session. |
+| **Dual search: QMD + LightRAG** | QMD for document search (keyword + vector + re-ranking). LightRAG for graph queries (entities + relationships). Complementary, not competing. |
+| **QMD hybrid search (document search)** | BM25 + vector embeddings + LLM re-ranking via local MCP. Semantic matches ("payment failures" → "billing retry"). Registered globally — works in any session. Zero cost (local models). |
+| **LightRAG graph search (relationship queries)** | Knowledge graph maps entities and connections. Answers "how does X relate to Y?" Better for cross-document reasoning. Uses OpenAI API (~$0.01-0.05/query). |
 | **Grep/Glob fallback** | At <1000 files, Grep is <10ms. Works without QMD setup. Automatic fallback when QMD MCP is unavailable. |
 | **Global MCP, not per-project** | QMD registered in `~/.claude.json` (global). Claude can search the vault from any project without `/vault` — just ask. |
 | **Summary-first, load on demand** | Search shows 2-3 line summaries (~300 tokens) instead of auto-loading full documents (~10K tokens). User picks which files to load. |
