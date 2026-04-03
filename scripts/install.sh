@@ -38,10 +38,11 @@ if [ -d "$VAULT_ROOT" ]; then
   echo "Setting up vault directories..."
   mkdir -p "$VAULT_ROOT/Work/ClickUp"
   mkdir -p "$VAULT_ROOT/Work/Claude Code/Sessions"
+  mkdir -p "$VAULT_ROOT/Work/Claude Code/Sessions/auto"
   mkdir -p "$VAULT_ROOT/Work/EOD"
   mkdir -p "$VAULT_ROOT/Personal"
   mkdir -p "$VAULT_ROOT/Tools"
-  echo "  Created Work/ClickUp/, Work/Claude Code/Sessions/, Work/EOD/, Personal/, Tools/"
+  echo "  Created Work/ClickUp/, Work/Claude Code/Sessions/, Sessions/auto/, Work/EOD/, Personal/, Tools/"
 
   # 3. Copy sync config template (never overwrite existing)
   SYNC_CONFIG="$VAULT_ROOT/Work/ClickUp/sync-config.json"
@@ -71,6 +72,63 @@ elif command -v node &> /dev/null; then
 else
   echo "QMD requires Node.js >= 22. Install Node.js for semantic search support."
 fi
+
+# 5. Register SessionEnd hook for auto-backup
+echo ""
+echo "Configuring session auto-backup hook..."
+SETTINGS_FILE="$HOME/.claude/settings.json"
+SCRIPT_PATH="$REPO_ROOT/scripts/session-backup.py"
+
+# Convert script path to native format for the hook command
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
+  SCRIPT_PATH_NATIVE=$(cygpath -w "$SCRIPT_PATH" 2>/dev/null || echo "$SCRIPT_PATH")
+else
+  SCRIPT_PATH_NATIVE="$SCRIPT_PATH"
+fi
+
+python3 -c "
+import json, sys, os
+
+settings_path = sys.argv[1]
+script_path = sys.argv[2]
+
+# Read existing settings or start fresh
+if os.path.isfile(settings_path):
+    with open(settings_path, encoding='utf-8') as f:
+        settings = json.load(f)
+else:
+    settings = {}
+
+# Build the hook entry
+hook_entry = {
+    'hooks': [{
+        'type': 'command',
+        'command': f'python3 \"{script_path}\"',
+        'timeout': 15
+    }]
+}
+
+# Merge into existing hooks
+if 'hooks' not in settings:
+    settings['hooks'] = {}
+
+session_end_hooks = settings['hooks'].get('SessionEnd', [])
+
+# Check if our hook is already registered (avoid duplicates)
+already_registered = any(
+    any('session-backup' in h.get('command', '') for h in entry.get('hooks', []))
+    for entry in session_end_hooks
+)
+
+if not already_registered:
+    session_end_hooks.append(hook_entry)
+    settings['hooks']['SessionEnd'] = session_end_hooks
+    with open(settings_path, 'w', encoding='utf-8') as f:
+        json.dump(settings, f, indent=2)
+    print('  SessionEnd hook registered in', settings_path)
+else:
+    print('  SessionEnd hook already registered, skipping')
+" "$SETTINGS_FILE" "$SCRIPT_PATH_NATIVE"
 
 echo ""
 echo "Done. Test with: /vault --types"
