@@ -139,5 +139,56 @@ else:
     print('  SessionEnd hook already registered, skipping')
 " "$SETTINGS_FILE" "$SCRIPT_PATH_NATIVE"
 
+# 6. Register PreCompact hook
+echo ""
+echo "Configuring pre-compact hook..."
+PRECOMPACT_PATH="$REPO_ROOT/scripts/pre-compact.py"
+
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
+  PRECOMPACT_PATH_NATIVE=$(cygpath -w "$PRECOMPACT_PATH" 2>/dev/null || echo "$PRECOMPACT_PATH")
+else
+  PRECOMPACT_PATH_NATIVE="$PRECOMPACT_PATH"
+fi
+
+python3 -c "
+import json, sys, os
+
+settings_path = sys.argv[1]
+script_path = sys.argv[2]
+
+if os.path.isfile(settings_path):
+    with open(settings_path, encoding='utf-8') as f:
+        settings = json.load(f)
+else:
+    settings = {}
+
+hook_entry = {
+    'hooks': [{
+        'type': 'command',
+        'command': f'python3 \"{script_path}\"',
+        'timeout': 10
+    }]
+}
+
+if 'hooks' not in settings:
+    settings['hooks'] = {}
+
+precompact_hooks = settings['hooks'].get('PreCompact', [])
+
+already_registered = any(
+    any('pre-compact' in h.get('command', '') for h in entry.get('hooks', []))
+    for entry in precompact_hooks
+)
+
+if not already_registered:
+    precompact_hooks.append(hook_entry)
+    settings['hooks']['PreCompact'] = precompact_hooks
+    with open(settings_path, 'w', encoding='utf-8') as f:
+        json.dump(settings, f, indent=2)
+    print('  PreCompact hook registered in', settings_path)
+else:
+    print('  PreCompact hook already registered, skipping')
+" "$SETTINGS_FILE" "$PRECOMPACT_PATH_NATIVE"
+
 echo ""
 echo "Done. Test with: /vault --types"
