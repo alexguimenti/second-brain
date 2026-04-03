@@ -30,8 +30,18 @@ echo "[$(date -Iseconds)] ClickUp sync done (exit: $?)" >> "$LOG_FILE"
 
 # Run sync-linear
 claude -p "/sync-linear" --cwd "$REPO_ROOT" >> "$LOG_FILE" 2>&1
-EXIT_CODE=$?
-echo "[$(date -Iseconds)] Linear sync done (exit: $EXIT_CODE)" >> "$LOG_FILE"
+echo "[$(date -Iseconds)] Linear sync done (exit: $?)" >> "$LOG_FILE"
+
+# Run sync-clickup-chat (if config exists)
+CHAT_CONFIG="$VAULT_ROOT/Work/ClickUp/chat-sync-config.json"
+if [ -f "$CHAT_CONFIG" ]; then
+  claude -p "/sync-clickup-chat" --cwd "$REPO_ROOT" >> "$LOG_FILE" 2>&1
+  EXIT_CODE=$?
+  echo "[$(date -Iseconds)] ClickUp chat sync done (exit: $EXIT_CODE)" >> "$LOG_FILE"
+else
+  EXIT_CODE=0
+  echo "[$(date -Iseconds)] ClickUp chat sync skipped (no config)" >> "$LOG_FILE"
+fi
 
 # Re-index vault if QMD is available
 if command -v qmd &> /dev/null; then

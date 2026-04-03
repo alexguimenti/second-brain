@@ -52,6 +52,15 @@ if [ -d "$VAULT_ROOT" ]; then
   else
     echo "  sync-config.json already exists, skipping"
   fi
+
+  # 3b. Copy chat sync config template (never overwrite existing)
+  CHAT_CONFIG="$VAULT_ROOT/Work/ClickUp/chat-sync-config.json"
+  if [ ! -f "$CHAT_CONFIG" ]; then
+    cp "$REPO_ROOT/config/chat-sync-config.template.json" "$CHAT_CONFIG"
+    echo "  Created chat-sync-config.json from template"
+  else
+    echo "  chat-sync-config.json already exists, skipping"
+  fi
 else
   echo ""
   echo "Vault root not found at $VAULT_ROOT — skipping vault setup."
