@@ -197,7 +197,7 @@ def main():
     append_to_daily_log(project, messages, date)
 
     # Sync global config files from ~/.claude/ to vault
-    for filename in ("USER.md", "SOUL.md", "CLAUDE.md"):
+    for filename in ("USER.md", "SOUL.md", "CLAUDE.md", "MEMORY.md"):
         source = Path.home() / ".claude" / filename
         dest = vault_root / "Tools" / filename
         if source.is_file():
