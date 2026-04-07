@@ -37,9 +37,11 @@ claude -p "/sync-linear" >> "$LOG_FILE" 2>&1
 echo "[$(date -Iseconds)] Linear sync done (exit: $?)" >> "$LOG_FILE"
 
 # Run sync-clickup-chat (if config exists)
+# Uses fast variant: haiku fetches JSON via MCP, Python script converts to markdown
+# This minimizes token usage (~10x cheaper than having the LLM format messages)
 CHAT_CONFIG="$VAULT_ROOT/Work/ClickUp/chat-sync-config.json"
 if [ -f "$CHAT_CONFIG" ]; then
-  claude -p "/sync-clickup-chat" >> "$LOG_FILE" 2>&1
+  claude -p "/sync-clickup-chat-fast" --model haiku >> "$LOG_FILE" 2>&1
   EXIT_CODE=$?
   echo "[$(date -Iseconds)] ClickUp chat sync done (exit: $EXIT_CODE)" >> "$LOG_FILE"
 else
