@@ -24,6 +24,9 @@ if [ ! -f "$DAILY_LOG" ]; then
   exit 0
 fi
 
+# Run reflection from repo root so skills resolve correctly
+cd "$REPO_ROOT"
+
 # Run reflection via Claude Code
 claude -p "
 You have access to two files:
@@ -48,7 +51,7 @@ Read both files. Then update MEMORY.md following these rules:
 After updating, copy MEMORY.md to the vault: copy ~/.claude/MEMORY.md to ~/Documents/Vaults/Mex_Vault/Tools/MEMORY.md
 
 Report what you added and removed.
-" --cwd "$REPO_ROOT" >> "$LOG_FILE" 2>&1
+" >> "$LOG_FILE" 2>&1
 
 EXIT_CODE=$?
 echo "[$(date -Iseconds)] Daily reflection done (exit: $EXIT_CODE)" >> "$LOG_FILE"

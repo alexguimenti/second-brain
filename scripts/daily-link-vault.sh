@@ -10,6 +10,9 @@ LOG_FILE="$HOME/.claude/daily-logs/sync.log"
 
 echo "[$(date -Iseconds)] Starting daily link-vault scan..." >> "$LOG_FILE"
 
+# Run from repo root so skills resolve correctly
+cd "$REPO_ROOT"
+
 # Only scan content areas that benefit from linking (skip prompts, configs, chat, auto-backups)
 claude -p "
 Run /link-vault --auto but ONLY scan these folders:
@@ -27,7 +30,7 @@ Skip these entirely:
 - Tools/CC/ (config docs)
 
 This reduces the scan from ~482 files to ~120 linkable content files.
-" --cwd "$REPO_ROOT" >> "$LOG_FILE" 2>&1
+" >> "$LOG_FILE" 2>&1
 
 EXIT_CODE=$?
 echo "[$(date -Iseconds)] Link-vault done (exit: $EXIT_CODE)" >> "$LOG_FILE"

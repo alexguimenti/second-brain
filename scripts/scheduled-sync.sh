@@ -21,22 +21,25 @@ LOG_FILE="$HOME/.claude/daily-logs/sync.log"
 echo "[$(date -Iseconds)] Starting scheduled sync..." >> "$LOG_FILE"
 
 if [[ "${1:-}" == "--dry-run" ]]; then
-  echo "[DRY RUN] Would run: claude -p /sync-clickup --cwd $REPO_ROOT"
+  echo "[DRY RUN] Would run: claude -p /sync-clickup (from $REPO_ROOT)"
   exit 0
 fi
 
+# All claude commands must run from the repo root so skills resolve correctly
+cd "$REPO_ROOT"
+
 # Run sync-clickup via Claude Code non-interactive mode
-claude -p "/sync-clickup" --cwd "$REPO_ROOT" >> "$LOG_FILE" 2>&1
+claude -p "/sync-clickup" >> "$LOG_FILE" 2>&1
 echo "[$(date -Iseconds)] ClickUp sync done (exit: $?)" >> "$LOG_FILE"
 
 # Run sync-linear
-claude -p "/sync-linear" --cwd "$REPO_ROOT" >> "$LOG_FILE" 2>&1
+claude -p "/sync-linear" >> "$LOG_FILE" 2>&1
 echo "[$(date -Iseconds)] Linear sync done (exit: $?)" >> "$LOG_FILE"
 
 # Run sync-clickup-chat (if config exists)
 CHAT_CONFIG="$VAULT_ROOT/Work/ClickUp/chat-sync-config.json"
 if [ -f "$CHAT_CONFIG" ]; then
-  claude -p "/sync-clickup-chat" --cwd "$REPO_ROOT" >> "$LOG_FILE" 2>&1
+  claude -p "/sync-clickup-chat" >> "$LOG_FILE" 2>&1
   EXIT_CODE=$?
   echo "[$(date -Iseconds)] ClickUp chat sync done (exit: $EXIT_CODE)" >> "$LOG_FILE"
 else
