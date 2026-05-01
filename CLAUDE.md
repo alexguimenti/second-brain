@@ -36,7 +36,7 @@ Canonical source for the Second Brain knowledge management tooling — Obsidian 
 
 - **What:** SessionEnd hook saves a lightweight backup of every non-trivial session to the vault
 - **Where:** `<vault>/Work/Claude Code/Sessions/auto/`
-- **Daily log:** Also appends a session summary to `~/.claude/daily-logs/YYYY-MM-DD.md` (feeds into `/eod`)
+- **Daily log:** Also appends a session summary to `<vault>/Work/Claude Code/Daily Logs/YYYY-MM-DD.md` (feeds into `/eod`)
 - **Filter:** Sessions with < 3 user messages are skipped
 - **Scope:** Global — runs on all sessions in all projects
 - **Type:** `session-auto` (distinct from `session` created by `/save-session`)

@@ -12,23 +12,32 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+VAULT_ROOT="${VAULT_ROOT:-$HOME/Documents/Vaults/Mex_Vault}"
 LOG_FILE="$HOME/.claude/daily-logs/sync.log"
 TODAY=$(date +%Y-%m-%d)
-DAILY_LOG="$HOME/.claude/daily-logs/$TODAY.md"
+DAILY_LOG="$VAULT_ROOT/Work/Claude Code/Daily Logs/$TODAY.md"
 
-echo "[$(date -Iseconds)] Starting daily reflection..." >> "$LOG_FILE"
+# Log to both terminal and file
+log() { echo "$1" | tee -a "$LOG_FILE"; }
+
+log ""
+log "════════════════════════════════════════"
+log "  Daily Reflection — $TODAY $(date '+%H:%M:%S')"
+log "════════════════════════════════════════"
 
 # Skip if no daily log exists for today
 if [ ! -f "$DAILY_LOG" ]; then
-  echo "[$(date -Iseconds)] No daily log for $TODAY, skipping reflection" >> "$LOG_FILE"
+  log "- No daily log for $TODAY, skipping"
   exit 0
 fi
+
+log "▶ Reading daily log + updating MEMORY.md..."
 
 # Run reflection from repo root so skills resolve correctly
 cd "$REPO_ROOT"
 
 # Run reflection via Claude Code
-claude -p "
+claude --model claude-haiku-4-5-20251001 -p "
 You have access to two files:
 1. Today's daily log: ~/.claude/daily-logs/$TODAY.md
 2. The current MEMORY.md: ~/.claude/MEMORY.md
@@ -51,9 +60,9 @@ Read both files. Then update MEMORY.md following these rules:
 After updating, copy MEMORY.md to the vault: copy ~/.claude/MEMORY.md to ~/Documents/Vaults/Mex_Vault/Tools/MEMORY.md
 
 Report what you added and removed.
-" >> "$LOG_FILE" 2>&1
+" 2>&1 | tee -a "$LOG_FILE"
 
-EXIT_CODE=$?
-echo "[$(date -Iseconds)] Daily reflection done (exit: $EXIT_CODE)" >> "$LOG_FILE"
+EXIT_CODE="${PIPESTATUS[0]}"
+log "✓ Daily reflection done ($(date '+%H:%M:%S'), exit: $EXIT_CODE)"
 
 exit $EXIT_CODE

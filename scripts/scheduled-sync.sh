@@ -9,7 +9,7 @@
 # Schedule (Windows Task Scheduler):
 #   Action: bash
 #   Arguments: "C:\Users\...\second-brain\scripts\scheduled-sync.sh"
-#   Trigger: Daily at 08:00 (or your preferred time)
+#   Trigger: Daily at 07:00
 
 set -euo pipefail
 
@@ -18,47 +18,64 @@ REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 VAULT_ROOT="${VAULT_ROOT:-$HOME/Documents/Vaults/Mex_Vault}"
 LOG_FILE="$HOME/.claude/daily-logs/sync.log"
 
-echo "[$(date -Iseconds)] Starting scheduled sync..." >> "$LOG_FILE"
+# Log to both terminal and file
+log() { echo "$1" | tee -a "$LOG_FILE"; }
+
+log ""
+log "════════════════════════════════════════"
+log "  Second Brain Sync — $(date '+%Y-%m-%d %H:%M:%S')"
+log "════════════════════════════════════════"
 
 if [[ "${1:-}" == "--dry-run" ]]; then
-  echo "[DRY RUN] Would run: claude -p /sync-clickup (from $REPO_ROOT)"
+  log "[DRY RUN] Would run: /sync-clickup, /sync-linear, sync-clickup-chat.py"
   exit 0
 fi
 
 # All claude commands must run from the repo root so skills resolve correctly
 cd "$REPO_ROOT"
 
-# Run sync-clickup via Claude Code non-interactive mode
-claude -p "/sync-clickup" >> "$LOG_FILE" 2>&1
-echo "[$(date -Iseconds)] ClickUp sync done (exit: $?)" >> "$LOG_FILE"
+# ── 1. ClickUp docs ──────────────────────────────────────────────────────────
+log ""
+log "▶ [1/4] Syncing ClickUp docs..."
+claude --model claude-haiku-4-5-20251001 -p "/sync-clickup" 2>&1 | tee -a "$LOG_FILE"
+log "✓ [1/4] ClickUp docs done ($(date '+%H:%M:%S'))"
 
-# Run sync-linear
-claude -p "/sync-linear" >> "$LOG_FILE" 2>&1
-echo "[$(date -Iseconds)] Linear sync done (exit: $?)" >> "$LOG_FILE"
+# ── 2. Linear ────────────────────────────────────────────────────────────────
+log ""
+log "▶ [2/4] Syncing Linear..."
+claude --model claude-haiku-4-5-20251001 -p "/sync-linear" 2>&1 | tee -a "$LOG_FILE"
+log "✓ [2/4] Linear done ($(date '+%H:%M:%S'))"
 
-# Run sync-clickup-chat (if config exists)
-# Uses fast variant: haiku fetches JSON via MCP, Python script converts to markdown
-# This minimizes token usage (~10x cheaper than having the LLM format messages)
+# ── 3. ClickUp chat channels ─────────────────────────────────────────────────
 CHAT_CONFIG="$VAULT_ROOT/Work/ClickUp/chat-sync-config.json"
 if [ -f "$CHAT_CONFIG" ]; then
-  claude -p "/sync-clickup-chat-fast" --model haiku >> "$LOG_FILE" 2>&1
-  EXIT_CODE=$?
-  echo "[$(date -Iseconds)] ClickUp chat sync done (exit: $EXIT_CODE)" >> "$LOG_FILE"
+  if [ -f "$HOME/.workbench.env" ]; then
+    set -a; source "$HOME/.workbench.env"; set +a
+  fi
+  log ""
+  log "▶ [3/4] Syncing ClickUp chat (33 channels, last 25 msgs each)..."
+  python3 "$SCRIPT_DIR/sync-clickup-chat.py" 2>&1 | tee -a "$LOG_FILE"
+  EXIT_CODE="${PIPESTATUS[0]}"
+  log "✓ [3/4] Chat done ($(date '+%H:%M:%S'))"
 else
   EXIT_CODE=0
-  echo "[$(date -Iseconds)] ClickUp chat sync skipped (no config)" >> "$LOG_FILE"
+  log "- [3/4] Chat skipped (no config)"
 fi
 
-# Re-index vault if QMD is available
+# ── 4. Re-index ──────────────────────────────────────────────────────────────
+log ""
+log "▶ [4/4] Re-indexing..."
+
 if command -v qmd &> /dev/null; then
-  echo "[$(date -Iseconds)] Running QMD incremental index..." >> "$LOG_FILE"
-  qmd embed >> "$LOG_FILE" 2>&1
-  echo "[$(date -Iseconds)] QMD index done" >> "$LOG_FILE"
+  log "  → QMD incremental index..."
+  qmd embed 2>&1 | tee -a "$LOG_FILE"
+  log "  ✓ QMD done"
+else
+  log "  - QMD not available, skipping"
 fi
 
-# Re-index LightRAG if running
 if curl -s http://localhost:9621/health > /dev/null 2>&1; then
-  echo "[$(date -Iseconds)] Syncing vault files to LightRAG..." >> "$LOG_FILE"
+  log "  → LightRAG re-index..."
   LIGHTRAG_INPUTS="$REPO_ROOT/lightrag/data/inputs"
   rm -f "$LIGHTRAG_INPUTS"/*.md 2>/dev/null
 
@@ -67,10 +84,16 @@ if curl -s http://localhost:9621/health > /dev/null 2>&1; then
   find "$VAULT_ROOT/Work/EOD" -name "*.md" -exec cp {} "$LIGHTRAG_INPUTS/" \; 2>/dev/null
   find "$VAULT_ROOT/Work/Search Atlas" -name "*.md" -exec cp {} "$LIGHTRAG_INPUTS/" \; 2>/dev/null
 
-  curl -s -X POST http://localhost:9621/documents/scan >> "$LOG_FILE" 2>&1
-  echo "[$(date -Iseconds)] LightRAG re-index triggered" >> "$LOG_FILE"
+  curl -s -X POST http://localhost:9621/documents/scan 2>&1 | tee -a "$LOG_FILE"
+  log "  ✓ LightRAG triggered"
 else
-  echo "[$(date -Iseconds)] LightRAG not running, skipping" >> "$LOG_FILE"
+  log "  - LightRAG not running, skipping"
 fi
+
+log ""
+log "════════════════════════════════════════"
+log "  Sync complete — $(date '+%H:%M:%S')"
+log "════════════════════════════════════════"
+log ""
 
 exit $EXIT_CODE

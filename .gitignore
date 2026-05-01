@@ -20,3 +20,25 @@ docs/superpowers/plans/
 # LightRAG data and secrets
 lightrag/.env
 lightrag/data/
+
+# Temporary experimental scripts (never commit)
+tmp_*.py
+tmp_*.json
+tmp_*.txt
+
+# Data files with real ticket/user data
+gsc_active_tickets.txt
+gsc_linear_output.json
+rb_active_issues.json
+parse_linear_gsc.py
+parse_linear_new.py
+parse_linear_out.json
+*.json
+!config/*.json
+
+# Other temp files
+MEMORY-UPDATE.md
+write_rb_pages.py
+scripts/extract_issues.py
+scripts/sync-clickup-chat.py
+scripts/insight-settings.json

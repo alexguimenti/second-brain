@@ -106,8 +106,9 @@ def main():
     entry += f"Context saved before compaction (session: {session_id[:8]})\n\n"
     entry += f"**Topics discussed:**\n{topic_lines}\n"
 
-    # Append to daily log
-    log_dir = Path.home() / ".claude" / "daily-logs"
+    # Append to daily log (vault path, outside ~/.claude/ to avoid sensitive-file prompts)
+    vault_root = Path.home() / "Documents" / "Vaults" / "Mex_Vault"
+    log_dir = vault_root / "Work" / "Claude Code" / "Daily Logs"
     log_dir.mkdir(parents=True, exist_ok=True)
     log_path = log_dir / f"{date}.md"
 

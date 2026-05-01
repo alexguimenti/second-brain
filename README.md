@@ -1,6 +1,6 @@
 # Second Brain
 
-A knowledge management system built on an Obsidian vault with dual search (QMD + LightRAG), automatic persistence, and scheduled integrations with ClickUp and Linear. Claude Code has persistent identity via global memory files and automatically backs up every session.
+A knowledge management system and two-stage AI intelligence loop built on an Obsidian vault. Includes dual search (QMD + LightRAG), automatic persistence, scheduled integrations with ClickUp and Linear, and a nightly intelligence pipeline that surfaces PM blind spots and researches actionable topics using Claude + Gemini.
 
 ## System Overview
 
@@ -13,15 +13,14 @@ A knowledge management system built on an Obsidian vault with dual search (QMD +
   └──────┬───────┘  └──────┬───────┘  │  USER.md  (profile)   │
          │                 │          │  SOUL.md  (behavior)   │
   /sync-clickup     /sync-linear      │  MEMORY.md (knowledge) │
-  /sync-clickup-chat                  └──────────┬────────────┘
-         │                 │                     │
+         │                 │          └──────────┬────────────┘
          ▼                 ▼                     │ loaded every session
   ┌────────────────────────────────────┐         │
   │          Obsidian Vault            │         │
   │                                    │         │
   │  ClickUp docs ─ Linear snapshots  │         │
   │  Chat snapshots ─ Sessions ─ EODs │         │
-  │  Auto-backups ─ Notes ─ Specs     │         │
+  │  Insights ─ Research ─ Daily logs │         │
   └──┬──────────────┬─────────────┬───┘         │
      │              │             │              │
      │ QMD          │ LightRAG    │ /vault       │
@@ -29,31 +28,40 @@ A knowledge management system built on an Obsidian vault with dual search (QMD +
      ▼              ▼             ▼              ▼
   ┌────────────────────────────────────────────────┐
   │              Claude Code Session                │
-  │                                                │
-  │  Knows who you are (USER.md)                   │
-  │  Knows how to behave (SOUL.md)                 │
-  │  Knows recent decisions (MEMORY.md)            │
-  │  Searches vault automatically (QMD)            │
-  │  Explores relationships (LightRAG)             │
   └────────────────────┬───────────────────────────┘
-                       │
-              On close (Ctrl+C)
-                       │
+                       │ On close (Ctrl+C)
   ┌────────────────────▼───────────────────────────┐
-  │  SessionEnd Hook (session-backup.py)           │
-  │  → Auto-backup to vault                        │
-  │  → Append to daily log (feeds /eod)            │
-  │  → Sync global files to vault                  │
+  │  SessionEnd Hook → auto-backup to vault        │
   └────────────────────────────────────────────────┘
+
+  INTELLIGENCE LOOP (nightly, fully automatic)
+  ─────────────────────────────────────────────
+  21:00  Insight Agent  → reads vault (sessions, memory, chat, product docs)
+                        → runs blind-spots lens via Claude
+                        → saves to Vault/Work/Insights/{date}.md
+                        → posts summary to ClickUp
+
+  21:15  Research Agent → picks top 3 topics from insight
+                        → fetches live data via Gemini 2.5
+                        → synthesizes with Claude
+                        → saves to Vault/Work/Research/{date}.md
+                        → posts summary to ClickUp
+
+  Mon    Insight Agent  → runs weekly lens (exec brief with 🟢/🟡/🔴 scorecard)
+  08:00
 
   SCHEDULED TASKS (Windows Task Scheduler)
   ─────────────────────────────────────────
   07:00 + 13:00  Sync ClickUp + Linear + Chat + QMD re-index
+  18:30          /daily-recap → consolidate sessions into Vault/Work/Daily/
   19:00          Daily reflection → curate MEMORY.md
   20:00          Link vault → discover document connections
+  21:00          Insight Agent (blind-spots lens)
+  21:15          Research Agent (Gemini + Claude)
+  Mon 08:00      Insight Agent (weekly exec brief)
 ```
 
-The vault is a folder of markdown files with two search engines: **QMD** (semantic document search, local, free) and **LightRAG** (knowledge graph with entity relationships, OpenAI-powered). Claude has persistent identity across all sessions via 4 global files and automatically backs up every session on close.
+The vault is a folder of markdown files with two search engines: **QMD** (semantic document search, local, free) and **LightRAG** (knowledge graph with entity relationships, OpenAI-powered). Claude has persistent identity across all sessions via 4 global files and automatically backs up every session on close. A nightly intelligence loop reads the vault and generates actionable insights and research briefs.
 
 ## Quick Start
 
@@ -303,7 +311,7 @@ Not currently. The vault is designed as a personal knowledge base on a single ma
 
 ## Roadmap — Complete
 
-All 6 phases implemented. Inspired by [second-brain-starter](https://github.com/coleam00/second-brain-starter), adapted for a PM workflow with Claude Code + Obsidian + ClickUp + Linear.
+All 7 phases implemented. Inspired by [second-brain-starter](https://github.com/coleam00/second-brain-starter), adapted for a PM workflow with Claude Code + Obsidian + ClickUp + Linear + Gemini.
 
 | Phase | What | Status |
 |-------|------|--------|
@@ -313,6 +321,7 @@ All 6 phases implemented. Inspired by [second-brain-starter](https://github.com/
 | **4. Structured Memory** | USER.md + SOUL.md + MEMORY.md + CLAUDE.md loaded globally | ✅ |
 | **5. Expanded Integrations** | Linear + ClickUp + Chat sync, scheduled 2x daily | ✅ |
 | **6. Automatic Curation** | Daily reflection, PreCompact hook, MEMORY.md auto-curated | ✅ |
+| **7. Intelligence Loop** | Insight Agent (blind-spots/weekly) + Research Agent (Gemini + Claude) | ✅ |
 
 ### Phase 2 — QMD Hybrid Search + MCP ✅
 
@@ -368,14 +377,50 @@ Context is automatically preserved and curated without manual effort.
 - MEMORY.md auto-curated — stale entries removed, new decisions added with dates
 - Daily link-vault at 20:00 — discovers connections between vault documents, creates wikilinks, re-indexes QMD
 
+### Phase 7 — Intelligence Loop ✅
+
+A two-stage AI pipeline that reads the vault every night and generates actionable insights and research briefs — no manual effort required.
+
+**Stage 1 — Insight Agent (`scripts/insight-agent.py`):**
+- Reads ~120K chars of context: session notes, daily logs, MEMORY.md, product docs, ClickUp chat snapshots, previous insights
+- Runs one of three analytical lenses via Claude:
+  - `blind-spots` — attention gaps, assumption risks, neglected products, stale threads
+  - `patterns` — cross-product themes, repeated decisions, convergence opportunities
+  - `weekly` — one-page exec brief with 🟢/🟡/🔴 scorecard per product
+- Saves to `Vault/Work/Insights/{date}-{lens}.md` and posts summary to ClickUp
+
+**Stage 2 — Research Agent (`scripts/research-agent.py`):**
+- Reads the latest insight report
+- Uses Claude to extract top 3 research topics
+- Fetches live web data via Gemini 2.5 Flash (with Claude fallback if unavailable)
+- Synthesizes a structured brief per topic: what's happening, best practices, recommended actions, signals to watch
+- Saves to `Vault/Work/Research/{date}-research.md` and posts to ClickUp
+
+**Run manually:**
+```bash
+CLAUDE_SILENT_STOP=1 python3 scripts/insight-agent.py --lens blind-spots
+CLAUDE_SILENT_STOP=1 python3 scripts/insight-agent.py --lens weekly
+CLAUDE_SILENT_STOP=1 python3 scripts/insight-agent.py --dry-run   # preview context only
+CLAUDE_SILENT_STOP=1 python3 scripts/research-agent.py
+CLAUDE_SILENT_STOP=1 python3 scripts/research-agent.py --topic "SLA breach playbook"
+```
+
+**Note:** `CLAUDE_SILENT_STOP=1` prevents the save-session hook from interfering with automated Claude CLI calls.
+
+---
+
 ### Daily Automation Schedule
 
 | Time | Task | What it does |
 |------|------|-------------|
 | **07:00** | Sync | ClickUp docs + Linear tickets + ClickUp chat + QMD + LightRAG re-index |
 | **13:00** | Sync | Same as 07:00 (second daily run) |
+| **18:30** | Daily recap | Consolidates Claude sessions into `Vault/Work/Daily/{date}.md` |
 | **19:00** | Reflection | Reviews daily log, curates MEMORY.md |
 | **20:00** | Link vault | Discovers document connections, creates wikilinks, QMD re-index |
+| **21:00** | Insight Agent | Blind-spots lens → `Vault/Work/Insights/` + ClickUp |
+| **21:15** | Research Agent | Top 3 topics via Gemini + Claude → `Vault/Work/Research/` + ClickUp |
+| **Mon 08:00** | Weekly brief | Weekly exec brief (scorecard per product) → `Vault/Work/Insights/` + ClickUp |
 | **On close** | Session backup | Auto-backup + daily log + sync global files (Ctrl+C or /exit) |
 | **On compact** | PreCompact | Extracts topics/decisions before context truncation |
 

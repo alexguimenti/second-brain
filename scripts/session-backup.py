@@ -120,11 +120,12 @@ cd "{project_path}"; claude --resume {session_id}
 def append_to_daily_log(project: str, messages: list[str], date: str):
     """Append a session summary to the daily log file.
 
-    The daily log lives at ~/.claude/daily-logs/YYYY-MM-DD.md and is read by
-    the /eod command to generate End-of-Day reports. Each session gets a
+    The daily log lives at ~/Documents/Vaults/Mex_Vault/Work/Claude Code/Daily Logs/YYYY-MM-DD.md
+    and is read by the /eod command to generate End-of-Day reports. Each session gets a
     timestamped section with the user's messages as bullet points.
     """
-    log_dir = Path.home() / ".claude" / "daily-logs"
+    vault_root = Path.home() / "Documents" / "Vaults" / "Mex_Vault"
+    log_dir = vault_root / "Work" / "Claude Code" / "Daily Logs"
     log_dir.mkdir(parents=True, exist_ok=True)
     log_path = log_dir / f"{date}.md"
 

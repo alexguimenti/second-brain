@@ -8,13 +8,18 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 LOG_FILE="$HOME/.claude/daily-logs/sync.log"
 
-echo "[$(date -Iseconds)] Starting daily link-vault scan..." >> "$LOG_FILE"
+# Log to both terminal and file
+log() { echo "$1" | tee -a "$LOG_FILE"; }
 
-# Run from repo root so skills resolve correctly
+log ""
+log "════════════════════════════════════════"
+log "  Daily Link Vault — $(date '+%Y-%m-%d %H:%M:%S')"
+log "════════════════════════════════════════"
+log "▶ Scanning ~120 vault files for new connections..."
+
 cd "$REPO_ROOT"
 
-# Only scan content areas that benefit from linking (skip prompts, configs, chat, auto-backups)
-claude -p "
+claude --model claude-haiku-4-5-20251001 -p "
 Run /link-vault --auto but ONLY scan these folders:
 - Work/ClickUp/ (product docs)
 - Work/Claude Code/Sessions/ (session notes, NOT auto/)
@@ -30,16 +35,17 @@ Skip these entirely:
 - Tools/CC/ (config docs)
 
 This reduces the scan from ~482 files to ~120 linkable content files.
-" >> "$LOG_FILE" 2>&1
+" 2>&1 | tee -a "$LOG_FILE"
 
-EXIT_CODE=$?
-echo "[$(date -Iseconds)] Link-vault done (exit: $EXIT_CODE)" >> "$LOG_FILE"
+EXIT_CODE="${PIPESTATUS[0]}"
+log "✓ Link vault done ($(date '+%H:%M:%S'), exit: $EXIT_CODE)"
 
-# Re-index after new links are created
 if command -v qmd &> /dev/null; then
-  echo "[$(date -Iseconds)] Running QMD incremental index..." >> "$LOG_FILE"
-  qmd embed >> "$LOG_FILE" 2>&1
-  echo "[$(date -Iseconds)] QMD index done" >> "$LOG_FILE"
+  log "▶ Running QMD incremental index..."
+  qmd embed 2>&1 | tee -a "$LOG_FILE"
+  log "✓ QMD done"
 fi
+
+log ""
 
 exit $EXIT_CODE
