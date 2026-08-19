@@ -1,0 +1,37 @@
+{
+  "_comment": "Template — copy this to scripts/repo-safety.config.json and fill in your own project's sensitive terms. The real repo-safety.config.json is gitignored-adjacent (excluded from any public snapshot you build) precisely because it necessarily ends up full of your own real company/product/personal identifiers as example data — see SECURITY.md in the source project this was adapted from for why.",
+
+  "forbidden_patterns": [
+    {
+      "label": "possible API key/secret literal",
+      "regex": "(sk-[a-zA-Z0-9_-]{16,}|ghp_[a-zA-Z0-9]{20,}|gho_[a-zA-Z0-9]{20,}|glpat-[a-zA-Z0-9_-]{16,}|xox[bp]-[a-zA-Z0-9-]{10,}|AKIA[0-9A-Z]{12,}|AIza[0-9A-Za-z_-]{20,})"
+    },
+    {
+      "label": "hardcoded ID->name roster entry (numeric ID mapped to a capitalized name)",
+      "regex": "\"[0-9]{5,12}\"[[:space:]]*:[[:space:]]*\"[A-Z][a-z]+ [A-Z]"
+    },
+    {
+      "label": "example: a known real workspace/channel ID for your own project",
+      "regex": "(YOUR_KNOWN_SENSITIVE_ID_1|YOUR_KNOWN_SENSITIVE_ID_2)"
+    }
+  ],
+
+  "public_only_checks": [
+    { "label": "example: your company name", "regex": "YourCompanyName" },
+    { "label": "example: your personal username/handle", "regex": "your-github-handle" },
+    { "label": "example: your real name", "regex": "YourRealName" },
+    { "label": "example: a real product codename", "regex": "YourProductCodename" },
+    { "label": "dangling reference to an internal-only doc", "regex": "team-repo-policy" }
+  ],
+
+  "public_exclude_files": [
+    "SECURITY.md",
+    "scripts/repo-safety.config.json"
+  ],
+
+  "public_replacements": [
+    { "from": "YourCompanyName", "to": "Acme Corp" },
+    { "from": "YourProductCodename", "to": "Product" },
+    { "from": "/home/you/real/personal/path", "to": "/home/you/example/path" }
+  ]
+}

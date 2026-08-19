@@ -1,0 +1,59 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Claude Code
+.claude/
+
+# Vault data (not part of this repo)
+vault/
+
+# Superpowers plans (contain machine-specific paths)
+docs/superpowers/plans/
+
+# LightRAG data and secrets
+lightrag/.env
+lightrag/data/
+
+# Temporary experimental scripts (never commit)
+tmp_*.py
+tmp_*.json
+tmp_*.txt
+tmp_*.md
+
+# Scratch space for exploration/experiments that don't fit the tmp_ naming
+# (e.g. multi-file prototyping for a feature before it's folded into commands/ or scripts/)
+scratch/
+
+# Data files with real ticket/user data
+gsc_active_tickets.txt
+gsc_linear_output.json
+rb_active_issues.json
+parse_linear_gsc.py
+parse_linear_new.py
+parse_linear_out.json
+*.json
+!config/*.json
+!scripts/chat-user-map.example.json
+!scripts/repo-safety.config.json
+!scripts/repo-safety.config.example.json
+
+# Real ClickUp user-ID -> name rosters (see SECURITY.md)
+scripts/*.usermap.json
+
+# Other temp files
+MEMORY-UPDATE.md
+write_rb_pages.py
+scripts/extract_issues.py
+scripts/sync-clickup-chat.py
+scripts/insight-settings.json

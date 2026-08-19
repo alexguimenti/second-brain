@@ -1,0 +1,13 @@
+{
+  "channels": [
+    {
+      "channel_id": "YOUR_CHANNEL_ID",
+      "name": "Channel Name",
+      "vault_file": "Work/ClickUp/Chat/channel-name.md"
+    }
+  ],
+  "defaults": {
+    "messages_limit": 50,
+    "include_replies": false
+  }
+}

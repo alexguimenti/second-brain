@@ -1,0 +1,14 @@
+{
+  "documents": [
+    {
+      "document_id": "YOUR_DOC_ID",
+      "name": "Example Document",
+      "vault_path": "ClickUp/Category/Document Name"
+    }
+  ],
+  "defaults": {
+    "content_format": "text/md",
+    "max_page_depth": -1,
+    "flatten": false
+  }
+}
